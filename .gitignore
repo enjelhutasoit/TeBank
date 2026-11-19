@@ -1,0 +1,17 @@
+# Swift Package Manager build output and local workspace state
+.build/
+.swiftpm/
+
+# Xcode generated output
+DerivedData/
+*.xcresult/
+
+# User-specific Xcode settings
+xcuserdata/
+*.xcuserstate
+
+# macOS metadata
+.DS_Store
+
+# Package.resolved is intentionally not ignored.
+# Shared Xcode projects, workspaces, and schemes remain trackable.
