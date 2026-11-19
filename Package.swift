@@ -14,6 +14,12 @@ let package = Package(
             targets: ["TeBankCore"]
         )
     ],
+    dependencies: [
+        .package(
+            url: "https://github.com/enjelhutasoit/VaneKit.git",
+            revision: "b767fd63946cd654d72a3a695ff7664765529073"
+        )
+    ],
     targets: [
         .target(
             name: "TeBankCore"

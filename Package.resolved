@@ -1,0 +1,14 @@
+{
+  "originHash" : "535e8bc25b8c083f187f946f4707ce4e27e2e031cb433e1df518f2d7bbd5cde7",
+  "pins" : [
+    {
+      "identity" : "vanekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/enjelhutasoit/VaneKit.git",
+      "state" : {
+        "revision" : "b767fd63946cd654d72a3a695ff7664765529073"
+      }
+    }
+  ],
+  "version" : 3
+}
