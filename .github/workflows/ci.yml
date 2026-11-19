@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package-build:
+    name: SwiftPM build (Xcode 16.2)
+    runs-on: macos-15-intel
+    timeout-minutes: 10
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Verify pinned toolchain
+        shell: bash
+        run: |
+          if [[ ! -d "$DEVELOPER_DIR" ]]; then
+            echo "::error::Missing pinned Xcode at $DEVELOPER_DIR"
+            exit 1
+          fi
+
+          version="$(xcodebuild -version)"
+          printf '%s\n' "$version"
+          if [[ "$version" != $'Xcode 16.2\nBuild version 16C5032a' ]]; then
+            echo "::error::Expected Xcode 16.2 build 16C5032a"
+            exit 1
+          fi
+
+          xcrun swift --version
+
+      - name: Build Swift package
+        run: xcrun swift build -Xswiftc -warnings-as-errors
