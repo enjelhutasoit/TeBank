@@ -14,8 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  package-build:
-    name: SwiftPM build (Xcode 16.2)
+  package-tests:
+    name: SwiftPM tests (Xcode 16.2)
     runs-on: macos-15-intel
     timeout-minutes: 10
     env:
@@ -44,5 +44,5 @@ jobs:
 
           xcrun swift --version
 
-      - name: Build Swift package
-        run: xcrun swift build -Xswiftc -warnings-as-errors
+      - name: Test Swift package
+        run: xcrun swift test --disable-automatic-resolution -Xswiftc -warnings-as-errors
