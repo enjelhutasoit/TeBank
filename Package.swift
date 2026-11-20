@@ -12,7 +12,8 @@ let package = Package(
         .library(
             name: "TeBankCore",
             targets: ["TeBankCore"]
-        )
+        ),
+        .library(name: "TeBankUI", targets: ["TeBankUI"])
     ],
     dependencies: [
         .package(
@@ -23,6 +24,10 @@ let package = Package(
     targets: [
         .target(
             name: "TeBankCore"
+        ),
+        .target(
+            name: "TeBankUI",
+            dependencies: ["TeBankCore", .product(name: "VaneKit", package: "VaneKit")]
         ),
         .testTarget(
             name: "TeBankCoreTests",
