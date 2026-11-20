@@ -17,7 +17,7 @@ jobs:
   package-tests:
     name: SwiftPM tests (Xcode 16.2)
     runs-on: macos-15-intel
-    timeout-minutes: 10
+    timeout-minutes: 20
     env:
       DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
 
@@ -51,15 +51,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          xcodebuild -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/TeBankBuild" CODE_SIGNING_ALLOWED=NO build
+
+          # Use the runner's simulator manager for the installed iOS runtimes.
+          unset DEVELOPER_DIR
+          xcrun simctl list devices available
           devices=$(xcrun simctl list devices available -j)
           device_id=$(python3 -c 'import json, sys
           devices = json.load(sys.stdin)["devices"]
           print(next(d["udid"] for runtime, group in devices.items()
-                     if ".iOS-18-2" in runtime for d in group
-                     if d["name"].startswith("iPhone")))' <<< "$devices")
-          xcodebuild -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
-            -destination "platform=iOS Simulator,id=$device_id" \
-            -derivedDataPath "$RUNNER_TEMP/TeBankBuild" CODE_SIGNING_ALLOWED=NO build
+                     if ".iOS-" in runtime and int(runtime.split(".iOS-")[1].split("-")[0]) >= 17
+                     for d in group if d["name"].startswith("iPhone")))' <<< "$devices")
           xcrun simctl bootstatus "$device_id" -b
           xcrun simctl install "$device_id" "$RUNNER_TEMP/TeBankBuild/Build/Products/Debug-iphonesimulator/TeBank.app"
           xcrun simctl launch "$device_id" dev.tebank.prototype
