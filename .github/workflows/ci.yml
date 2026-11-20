@@ -46,3 +46,20 @@ jobs:
 
       - name: Test Swift package
         run: xcrun swift test --disable-automatic-resolution -Xswiftc -warnings-as-errors
+
+      - name: Build and launch the iOS shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          devices=$(xcrun simctl list devices available -j)
+          device_id=$(python3 -c 'import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          print(next(d["udid"] for runtime, group in devices.items()
+                     if ".iOS-18-2" in runtime for d in group
+                     if d["name"].startswith("iPhone")))' <<< "$devices")
+          xcodebuild -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
+            -destination "platform=iOS Simulator,id=$device_id" \
+            -derivedDataPath "$RUNNER_TEMP/TeBankBuild" CODE_SIGNING_ALLOWED=NO build
+          xcrun simctl bootstatus "$device_id" -b
+          xcrun simctl install "$device_id" "$RUNNER_TEMP/TeBankBuild/Build/Products/Debug-iphonesimulator/TeBank.app"
+          xcrun simctl launch "$device_id" dev.tebank.prototype
