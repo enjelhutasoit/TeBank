@@ -23,6 +23,10 @@ let package = Package(
     targets: [
         .target(
             name: "TeBankCore"
+        ),
+        .testTarget(
+            name: "TeBankCoreTests",
+            dependencies: ["TeBankCore"]
         )
     ],
     swiftLanguageModes: [.v6]
