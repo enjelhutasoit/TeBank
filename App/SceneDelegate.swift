@@ -42,6 +42,12 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     private func presentLockedSession() {
+        #if DEBUG && targetEnvironment(simulator)
+        if ProcessInfo.processInfo.arguments.contains("--dashboard-ui-test") {
+            window?.rootViewController = UIHostingController(rootView: TeBankShell().teBankTheme())
+            return
+        }
+        #endif
         // Each foreground session has its own controller. A late result can only
         // update the old, detached view after this window re-enters the background.
         let controller = SessionController(
