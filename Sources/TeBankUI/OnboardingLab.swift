@@ -24,9 +24,18 @@ struct OnboardingLab: View {
                 }
             }
             .disabled(demo.model.isBusy || demo.changingScenario)
+            if case .reviewed(_, .pending) = demo.model.progress {
+                Section("Tinjauan demo") {
+                    Button("Setujui pengajuan demo") {
+                        Task { await demo.approve() }
+                    }
+                    .disabled(demo.model.isBusy || demo.changingScenario)
+                    if demo.approvalFailed { Text("Keputusan demo gagal disimpan.") }
+                }
+            }
             Section {
                 Button("Mulai pengajuan baru", role: .destructive) { confirmingReset = true }
-                    .disabled(!demo.model.canReset)
+                    .disabled(!demo.model.canReset || demo.changingScenario)
             } footer: {
                 Text("Menghapus progres klien. Keputusan layanan demo untuk pengajuan lama tetap tersimpan.")
             }

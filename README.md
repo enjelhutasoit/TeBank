@@ -23,6 +23,8 @@ Use Xcode 16.2 and Swift 6.0.3. The app targets iOS 17 or later. The package sup
 5. In **Lab simulasi**, select **Respons hilang setelah diterima**, return, and submit. Terminate the app after the missing-response message. Relaunch, unlock, and reopen onboarding. The original request should show **Menunggu tinjauan**.
 6. For the sample-replacement demo, start a new request in the lab, select **Minta penggantian sampel**, and submit the new draft. Replace the synthetic samples to return to pending review.
 
+7. In the lab, select **Setujui pengajuan demo** once the request is pending. Return to onboarding, open **Buka dashboard**, and select a transaction to see its synthetic detail.
+
 From the repository root, run the package tests with Xcode 16.2 selected:
 
 ```bash

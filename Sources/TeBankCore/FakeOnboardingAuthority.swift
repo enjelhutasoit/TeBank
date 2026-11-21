@@ -44,6 +44,13 @@ public actor FakeOnboardingAuthority: OnboardingService {
         return .pending
     }
 
+    /// This control belongs to the synthetic demo lab, outside the client protocol.
+    public func approveForDemo(requestID: UUID) throws {
+        guard let existing = try read(requestID) else { throw OnboardingServiceError.notFound }
+        guard existing == .pending else { return }
+        try write(.approved, for: requestID)
+    }
+
     private func write(_ status: OnboardingCheckpoint.ReviewStatus, for requestID: UUID) throws {
         do {
             let data = try JSONEncoder().encode(status)
