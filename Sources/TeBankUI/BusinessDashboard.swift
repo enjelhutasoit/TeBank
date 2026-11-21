@@ -56,7 +56,10 @@ private struct TransactionDetail: View {
                 LabeledContent("Jenis", value: entry.amount < 0 ? "Keluar" : "Masuk")
                 LabeledContent("Jumlah", value: rupiah(entry.amount))
                 LabeledContent("Mitra", value: entry.note)
-                LabeledContent("Referensi demo", value: entry.id)
+            }
+            Section("Referensi demo") {
+                Text(entry.id)
+                    .accessibilityIdentifier("transaction.detail.reference")
             }
         }
         .navigationTitle(entry.title)
