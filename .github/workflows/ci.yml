@@ -17,7 +17,7 @@ jobs:
   package-tests:
     name: SwiftPM tests (Xcode 16.2)
     runs-on: macos-15-intel
-    timeout-minutes: 20
+    timeout-minutes: 45
     env:
       DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
 
@@ -73,6 +73,17 @@ jobs:
       - name: Test Swift package
         if: steps.scope.outputs.full == 'true'
         run: xcrun swift test --disable-automatic-resolution -Xswiftc -warnings-as-errors
+
+      - name: Ensure Xcode 16.2 has an iOS simulator destination
+        if: steps.scope.outputs.full == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          destinations=$(xcodebuild -project TeBank.xcodeproj -scheme TeBank -showdestinations)
+          if ! awk '/Ineligible destinations/ { exit } /platform:iOS Simulator,/ { found=1 } END { exit !found }' <<< "$destinations"; then
+            printf '%s\n' "$destinations"
+            xcodebuild -downloadPlatform iOS
+          fi
 
       - name: Build the iOS shell
         if: steps.scope.outputs.full == 'true'
