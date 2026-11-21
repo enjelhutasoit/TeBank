@@ -3,10 +3,25 @@ import XCTest
 final class DashboardFlowTests: XCTestCase {
     @MainActor
     func testApprovalUnlocksDashboardAndTransactionDetail() throws {
+        continueAfterFailure = false
         let app = XCUIApplication()
+        addTeardownBlock { @MainActor in
+            guard (self.testRun?.failureCount ?? 0) > 0 else { return }
+            let screen = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            screen.name = "Failure screen"
+            screen.lifetime = .deleteOnSuccess
+            self.add(screen)
+            let hierarchy = app.debugDescription
+            print("Failure accessibility hierarchy: " + hierarchy)
+            let tree = XCTAttachment(string: hierarchy)
+            tree.name = "Accessibility hierarchy"
+            tree.lifetime = .deleteOnSuccess
+            self.add(tree)
+        }
         app.launchArguments.append("--dashboard-ui-test")
         app.launch()
 
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 15), "TeBank did not reach the foreground")
         tap("Pendaftaran bisnis", in: app)
         XCTAssertFalse(app.buttons["Buka dashboard"].exists)
         let consent = app.switches["Setuju mengikuti simulasi"]
