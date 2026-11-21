@@ -17,6 +17,7 @@ struct BusinessDashboard: View {
                     Text(rupiah(ledger.balance))
                         .font(.largeTitle.weight(.semibold))
                         .monospacedDigit()
+                        .accessibilityLabel(Text("Saldo simulasi, \(ledger.balance.formatted(.number.locale(Locale(identifier: "id_ID")))) rupiah"))
                         .accessibilityIdentifier("dashboard.balance")
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
