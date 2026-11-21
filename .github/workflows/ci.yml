@@ -104,7 +104,18 @@ jobs:
           if device is None:
               sys.exit(f"No preinstalled iPhone simulator for iOS {sys.argv[1]}")
           print(device["udid"])' "$sdk_version" <<< "$devices")
+          xcrun simctl bootstatus "$device_id" -b
           xcodebuild -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
+            -resultBundlePath "$RUNNER_TEMP/dashboard.xcresult" \
             -destination "platform=iOS Simulator,id=$device_id,arch=$architecture" \
             -derivedDataPath "$RUNNER_TEMP/TeBankUITests" -parallel-testing-enabled NO \
             ARCHS="$architecture" CODE_SIGNING_ALLOWED=NO test
+
+      - name: Preserve failed dashboard UI test evidence
+        if: failure() && steps.scope.outputs.smoke == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dashboard-ui-failure
+          path: ${{ runner.temp }}/dashboard.xcresult
+          retention-days: 1
+          if-no-files-found: ignore
