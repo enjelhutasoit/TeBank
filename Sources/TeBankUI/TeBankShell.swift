@@ -10,6 +10,10 @@ public struct TeBankShell: View {
     public var body: some View {
         NavigationStack {
             List {
+                NavigationLink("Pendaftaran bisnis") {
+                    OnboardingScreen(demo: .shared)
+                }
+                .listRowBackground(theme.color(.surface, for: scheme))
                 NavigationLink("Tentang TeBank") {
                     Text("Prototipe independen dengan data simulasi.")
                         .padding()
