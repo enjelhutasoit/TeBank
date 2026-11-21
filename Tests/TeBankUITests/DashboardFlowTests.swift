@@ -40,7 +40,10 @@ final class DashboardFlowTests: XCTestCase {
         let balance = app.staticTexts["dashboard.balance"]
         XCTAssertTrue(balance.waitForExistence(timeout: 10))
         XCTAssertTrue(balance.label.contains("7.850.000"))
-        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .sufficientElementDescription])
+        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .sufficientElementDescription]) { issue in
+            print("Accessibility finding: \(issue.compactDescription) on \(issue.element?.debugDescription ?? "unknown element")")
+            return false
+        }
         let firstEntry = app.buttons["transaction.DEMO-003"]
         XCTAssertTrue(firstEntry.label.contains("Masuk"))
         XCTAssertTrue(firstEntry.label.contains("Toko Reka"))
@@ -48,7 +51,10 @@ final class DashboardFlowTests: XCTestCase {
         let reference = app.staticTexts["transaction.detail.reference"]
         XCTAssertTrue(reference.waitForExistence(timeout: 15))
         XCTAssertEqual(reference.label, "DEMO-003")
-        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .sufficientElementDescription])
+        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .sufficientElementDescription]) { issue in
+            print("Accessibility finding: \(issue.compactDescription) on \(issue.element?.debugDescription ?? "unknown element")")
+            return false
+        }
     }
 
     @MainActor
