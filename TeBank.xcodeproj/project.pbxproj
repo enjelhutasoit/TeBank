@@ -5,6 +5,15 @@
 	};
 	"objectVersion" = 56;
 	"objects" = {
+        "B105E5510000000000000001" = {
+            "isa" = "XCRemoteSwiftPackageReference";
+            "repositoryURL" = "https://github.com/enjelhutasoit-com/biometric-session-sdk.git";
+            "requirement" = { "kind" = "revision"; "revision" = "24f1f7972aeeabdb3e295c5000445e747743d3af"; };
+        };
+        "B105E5510000000000000002" = { "isa" = "XCSwiftPackageProductDependency"; "package" = "B105E5510000000000000001"; "productName" = "BiometricSessionCore"; };
+        "B105E5510000000000000004" = { "isa" = "PBXBuildFile"; "productRef" = "B105E5510000000000000002"; };
+        "B105E5510000000000000003" = { "isa" = "XCSwiftPackageProductDependency"; "package" = "B105E5510000000000000001"; "productName" = "BiometricSessionLocalAuth"; };
+        "B105E5510000000000000005" = { "isa" = "PBXBuildFile"; "productRef" = "B105E5510000000000000003"; };
 		"50A3B0F83151EC41B0DA6541" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -75,6 +84,8 @@
 			"buildActionMask" = 2147483647;
 			"files" = (
 				"450A10E496F7BD9BF6335F5B",
+				"B105E5510000000000000005",
+				"B105E5510000000000000004",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -105,6 +116,7 @@
 				"PRODUCT_BUNDLE_IDENTIFIER" = "dev.tebank.prototype";
 				"PRODUCT_NAME" = "$(TARGET_NAME)";
 				"GENERATE_INFOPLIST_FILE" = "YES";
+				"INFOPLIST_KEY_NSFaceIDUsageDescription" = "Buka sesi demo TeBank dengan Face ID.";
 				"INFOPLIST_KEY_CFBundleDisplayName" = "TeBank Demo";
 				"INFOPLIST_KEY_UILaunchScreen_Generation" = "YES";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation" = "YES";
@@ -138,6 +150,7 @@
 				"PRODUCT_BUNDLE_IDENTIFIER" = "dev.tebank.prototype";
 				"PRODUCT_NAME" = "$(TARGET_NAME)";
 				"GENERATE_INFOPLIST_FILE" = "YES";
+				"INFOPLIST_KEY_NSFaceIDUsageDescription" = "Buka sesi demo TeBank dengan Face ID.";
 				"INFOPLIST_KEY_CFBundleDisplayName" = "TeBank Demo";
 				"INFOPLIST_KEY_UILaunchScreen_Generation" = "YES";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation" = "YES";
@@ -184,6 +197,8 @@
 			"name" = "TeBank";
 			"packageProductDependencies" = (
 				"8473FB7C391915EE75DAD5DA",
+				"B105E5510000000000000003",
+				"B105E5510000000000000002",
 			);
 			"productName" = "TeBank";
 			"productReference" = "A8792157CB4F27FB949C035F";
@@ -212,6 +227,7 @@
 			"mainGroup" = "0D6E4079E36703EBD37C0072";
 			"packageReferences" = (
 				"25BF8E1A2393F1108D37029B",
+				"B105E5510000000000000001",
 			);
 			"productRefGroup" = "0A3E27B8CA818264D75C8D81";
 			"projectDirPath" = "";
