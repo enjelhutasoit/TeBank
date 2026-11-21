@@ -41,7 +41,9 @@ final class DashboardFlowTests: XCTestCase {
         XCTAssertTrue(balance.waitForExistence(timeout: 10))
         XCTAssertTrue(balance.label.contains("7.850.000"))
         tap("transaction.DEMO-003", in: app)
-        XCTAssertTrue(app.staticTexts["DEMO-003"].waitForExistence(timeout: 10))
+        let reference = app.staticTexts["transaction.detail.reference"]
+        XCTAssertTrue(reference.waitForExistence(timeout: 15))
+        XCTAssertEqual(reference.label, "DEMO-003")
     }
 
     @MainActor
