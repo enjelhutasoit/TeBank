@@ -1,6 +1,6 @@
 import Foundation
 
-public struct DemoLedger {
+public struct DemoLedger: Sendable {
     public struct Entry: Identifiable, Sendable {
         public let id: String
         public let title: String
