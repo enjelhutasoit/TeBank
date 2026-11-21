@@ -11,13 +11,20 @@ final class DashboardFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["Buka dashboard"].exists)
         let consent = app.switches["Setuju mengikuti simulasi"]
         XCTAssertTrue(consent.waitForExistence(timeout: 10))
-        consent.tap()
+        consent.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        let consentSaved = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == '1' AND enabled == true"),
+            object: consent
+        )
+        guard XCTWaiter.wait(for: [consentSaved], timeout: 15) == .completed else {
+            return XCTFail("Consent did not turn on. " + app.debugDescription)
+        }
         tap("Pilih sampel KTP dan swafoto", in: app)
         let submit = app.buttons["Kirim pengajuan"]
         let ready = NSPredicate(format: "exists == true AND enabled == true")
         let readyExpectation = XCTNSPredicateExpectation(predicate: ready, object: submit)
         guard XCTWaiter.wait(for: [readyExpectation], timeout: 10) == .completed else {
-            return XCTFail("Expected submit to become enabled")
+            return XCTFail("Expected submit to become enabled. " + app.debugDescription)
         }
         submit.tap()
         XCTAssertTrue(app.staticTexts["Menunggu tinjauan"].waitForExistence(timeout: 10))
