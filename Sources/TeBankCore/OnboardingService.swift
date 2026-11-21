@@ -3,6 +3,7 @@ import Foundation
 /// The caller persists the request ID before submitting and reuses it on retry.
 public protocol OnboardingService: Sendable {
     func submit(requestID: UUID) async throws -> OnboardingCheckpoint.ReviewStatus
+    func replaceSamples(requestID: UUID) async throws -> OnboardingCheckpoint.ReviewStatus
     func status(requestID: UUID) async throws -> OnboardingCheckpoint.ReviewStatus
 }
 

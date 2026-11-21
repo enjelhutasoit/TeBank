@@ -95,6 +95,24 @@ final class OnboardingModelTests: XCTestCase {
         XCTAssertEqual(model.progress, .reviewed(requestID: id, status: .pending))
     }
 
+    func testSampleReplacementPersistsAndEventsExposeOnlyFixedNames() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let authority = FakeOnboardingAuthority(directory: root)
+        let store = FakeCheckpointStore()
+        let model = await readyModel(store, authority)
+        await authority.setScenario(.requireAction)
+        await model.submit()
+        guard case .reviewed(let id, .requiresAction) = model.progress else {
+            return XCTFail("Expected the demo authority to request new samples")
+        }
+        await model.replaceSamples()
+        XCTAssertEqual(model.progress, .reviewed(requestID: id, status: .pending))
+        let recovered = try await FakeOnboardingAuthority(directory: root).status(requestID: id)
+        XCTAssertEqual(recovered, .pending)
+        XCTAssertEqual(model.events.map(\.rawValue), ["intentSaved", "decisionSaved", "decisionSaved", "samplesReplaced"])
+    }
+
     private func readyModel(_ store: any CheckpointStore, _ service: any OnboardingService) async -> OnboardingModel {
         let model = OnboardingModel(store: store, service: service)
         await model.restore()
@@ -141,6 +159,8 @@ private actor PausedOnboardingService: OnboardingService {
         completion?.resume()
         completion = nil
     }
+
+    func replaceSamples(requestID: UUID) -> OnboardingCheckpoint.ReviewStatus { .pending }
 
     func status(requestID: UUID) -> OnboardingCheckpoint.ReviewStatus { .pending }
 }

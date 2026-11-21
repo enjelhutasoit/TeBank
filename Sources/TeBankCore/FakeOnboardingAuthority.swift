@@ -23,18 +23,7 @@ public actor FakeOnboardingAuthority: OnboardingService {
         if let existing = try read(requestID) { return existing }
 
         let result: OnboardingCheckpoint.ReviewStatus = scenario == .requireAction ? .requiresAction : .pending
-        do {
-            let data = try JSONEncoder().encode(result)
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            #if os(iOS)
-            try data.write(to: url(for: requestID), options: [.atomic, .completeFileProtection])
-            #else
-            try data.write(to: url(for: requestID), options: .atomic)
-            #endif
-        } catch {
-            throw OnboardingServiceError.storageUnavailable
-        }
-
+        try write(result, for: requestID)
         if scenario == .loseSubmissionResponse {
             throw OnboardingServiceError.unknownOutcome
         }
@@ -45,6 +34,28 @@ public actor FakeOnboardingAuthority: OnboardingService {
         try checkAvailability()
         guard let result = try read(requestID) else { throw OnboardingServiceError.notFound }
         return result
+    }
+
+    public func replaceSamples(requestID: UUID) throws -> OnboardingCheckpoint.ReviewStatus {
+        let existing = try status(requestID: requestID)
+        guard existing == .requiresAction else { return existing }
+        try write(.pending, for: requestID)
+        if scenario == .loseSubmissionResponse { throw OnboardingServiceError.unknownOutcome }
+        return .pending
+    }
+
+    private func write(_ status: OnboardingCheckpoint.ReviewStatus, for requestID: UUID) throws {
+        do {
+            let data = try JSONEncoder().encode(status)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            #if os(iOS)
+            try data.write(to: url(for: requestID), options: [.atomic, .completeFileProtection])
+            #else
+            try data.write(to: url(for: requestID), options: .atomic)
+            #endif
+        } catch {
+            throw OnboardingServiceError.storageUnavailable
+        }
     }
 
     private func checkAvailability() throws {

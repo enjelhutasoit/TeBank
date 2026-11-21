@@ -7,6 +7,18 @@ public final class OnboardingModel {
         case checkpoint, offline, maintenance, unresolved, missingRequest, unavailable
     }
 
+    /// Only closed event names leave the model. No payload can contain a request ID.
+    public enum Event: String, Sendable {
+        case intentSaved, statusChecked, decisionSaved, interrupted, demoReset, samplesReplaced
+    }
+
+    public private(set) var events: [Event] = []
+
+    private func record(_ event: Event) {
+        events.append(event)
+        if events.count > 30 { events.removeFirst() }
+    }
+
     private enum Activity { case idle, loading, writing, contacting }
     private var activity: Activity = .idle
     private var generation = UUID()
@@ -49,6 +61,7 @@ public final class OnboardingModel {
         case .draft(true, true, true):
             id = UUID()
             guard await save(.submitting(requestID: id)) else { return }
+            record(.intentSaved)
         case .submitting(let existing) where issue == .missingRequest:
             id = existing
         default:
@@ -64,13 +77,20 @@ public final class OnboardingModel {
         case .submitting(let key), .reviewed(let key, _): id = key
         default: return
         }
+        record(.statusChecked)
         await contact(id: id) { try await self.service.status(requestID: id) }
+    }
+
+    public func replaceSamples() async {
+        guard case .reviewed(let id, .requiresAction) = progress, !isBusy else { return }
+        await contact(id: id) { try await self.service.replaceSamples(requestID: id) }
+        if case .reviewed(id, .pending) = progress, issue == nil { record(.samplesReplaced) }
     }
 
     public func reset() async {
         guard canReset else { return }
         generation = UUID()
-        _ = await save(OnboardingCheckpoint().progress)
+        if await save(OnboardingCheckpoint().progress) { record(.demoReset) }
     }
 
     private func contact(id: UUID, operation: () async throws -> OnboardingCheckpoint.ReviewStatus) async {
@@ -83,9 +103,10 @@ public final class OnboardingModel {
             let status = try await operation()
             guard generation == token else { return }
             try Task.checkCancellation()
-            _ = await save(.reviewed(requestID: id, status: status))
+            if await save(.reviewed(requestID: id, status: status)) { record(.decisionSaved) }
         } catch {
             guard generation == token else { return }
+            record(.interrupted)
             switch error {
             case OnboardingServiceError.offline: issue = .offline
             case OnboardingServiceError.maintenance: issue = .maintenance
