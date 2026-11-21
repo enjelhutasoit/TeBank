@@ -9,8 +9,8 @@ struct BusinessDashboard: View {
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        List {
-            Section {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Saldo simulasi")
                         .font(.subheadline)
@@ -21,10 +21,10 @@ struct BusinessDashboard: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, 16)
-            }
-            .listRowBackground(theme.color(.surface, for: scheme))
+                .padding(.horizontal)
+                .background(theme.color(.surface, for: scheme), in: RoundedRectangle(cornerRadius: 16))
 
-            Section("Aktivitas terbaru") {
+                Text("Aktivitas terbaru").font(.headline).accessibilityAddTraits(.isHeader)
                 ForEach(ledger.entries) { entry in
                     NavigationLink {
                         TransactionDetail(entry: entry)
@@ -38,13 +38,18 @@ struct BusinessDashboard: View {
                     }
                     .accessibilityLabel(Text("\(entry.title), \(entry.note), \(entry.amount < 0 ? "Keluar" : "Masuk") \(rupiah(entry.amount))"))
                     .accessibilityIdentifier("transaction.\(entry.id)")
-                    .listRowBackground(theme.color(.surface, for: scheme))
+                    .buttonStyle(.plain)
                 }
             }
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding()
         }
-        .scrollContentBackground(.hidden)
         .background(theme.color(.background, for: scheme))
         .navigationTitle("Dashboard bisnis")
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }
 
@@ -63,7 +68,10 @@ private struct TransactionDetail: View {
                     .accessibilityIdentifier("transaction.detail.reference")
             }
         }
-        .navigationTitle(entry.title)
+        .navigationTitle("Detail transaksi")
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }
 
