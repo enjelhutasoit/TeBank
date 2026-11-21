@@ -94,19 +94,17 @@ jobs:
           # Use the runner Xcode that owns the installed simulator runtime.
           unset DEVELOPER_DIR
           xcodebuild -version
+          sdk_version=$(xcrun --sdk iphonesimulator --show-sdk-version)
+          architecture=$(uname -m)
           devices=$(xcrun simctl list devices available -j)
           device_id=$(python3 -c 'import json, sys
-          devices = json.load(sys.stdin)["devices"]
-          for runtime, group in reversed(sorted(devices.items())):
-              if ".iOS-" not in runtime:
-                  continue
-              for device in group:
-                  if device["name"].startswith("iPhone"):
-                      print(device["udid"])
-                      sys.exit(0)
-          sys.exit("The runner image has no preinstalled iPhone simulator")' <<< "$devices")
-          xcodebuild -project TeBank.xcodeproj -scheme TeBank -showdestinations
+          runtime = "com.apple.CoreSimulator.SimRuntime.iOS-" + sys.argv[1].replace(".", "-")
+          devices = json.load(sys.stdin)["devices"].get(runtime, [])
+          device = next((item for item in devices if item["name"].startswith("iPhone")), None)
+          if device is None:
+              sys.exit(f"No preinstalled iPhone simulator for iOS {sys.argv[1]}")
+          print(device["udid"])' "$sdk_version" <<< "$devices")
           xcodebuild -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
-            -destination "platform=iOS Simulator,id=$device_id" \
+            -destination "platform=iOS Simulator,id=$device_id,arch=$architecture" \
             -derivedDataPath "$RUNNER_TEMP/TeBankUITests" -parallel-testing-enabled NO \
-            CODE_SIGNING_ALLOWED=NO test
+            ARCHS="$architecture" CODE_SIGNING_ALLOWED=NO test
