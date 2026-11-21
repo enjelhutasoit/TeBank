@@ -36,6 +36,7 @@ struct BusinessDashboard: View {
                         }
                         .padding(.vertical, 6)
                     }
+                    .accessibilityLabel(Text("\(entry.title), \(entry.note), \(entry.amount < 0 ? "Keluar" : "Masuk") \(rupiah(entry.amount))"))
                     .accessibilityIdentifier("transaction.\(entry.id)")
                     .listRowBackground(theme.color(.surface, for: scheme))
                 }

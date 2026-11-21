@@ -2,7 +2,7 @@ import XCTest
 
 final class DashboardFlowTests: XCTestCase {
     @MainActor
-    func testApprovalUnlocksDashboardAndTransactionDetail() {
+    func testApprovalUnlocksDashboardAndTransactionDetail() throws {
         let app = XCUIApplication()
         app.launchArguments.append("--dashboard-ui-test")
         app.launch()
@@ -40,10 +40,15 @@ final class DashboardFlowTests: XCTestCase {
         let balance = app.staticTexts["dashboard.balance"]
         XCTAssertTrue(balance.waitForExistence(timeout: 10))
         XCTAssertTrue(balance.label.contains("7.850.000"))
+        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .sufficientElementDescription])
+        let firstEntry = app.buttons["transaction.DEMO-003"]
+        XCTAssertTrue(firstEntry.label.contains("Masuk"))
+        XCTAssertTrue(firstEntry.label.contains("Toko Reka"))
         tap("transaction.DEMO-003", in: app)
         let reference = app.staticTexts["transaction.detail.reference"]
         XCTAssertTrue(reference.waitForExistence(timeout: 15))
         XCTAssertEqual(reference.label, "DEMO-003")
+        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .sufficientElementDescription])
     }
 
     @MainActor
