@@ -99,18 +99,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Use the runner Xcode that owns the installed simulator runtime.
+          unset DEVELOPER_DIR
+          xcodebuild -version
           destinations=$(xcodebuild -project TeBank.xcodeproj -scheme TeBank -showdestinations)
           device_id=$(python3 -c 'import re, sys
           eligible = sys.stdin.read().split("Ineligible destinations")[0]
           for line in eligible.splitlines():
               if "platform:iOS Simulator," in line and "name:iPhone" in line:
-                  match = re.search(r"id:([0-9A-Fa-f-]{36})", line)
+                  match = re.search(r"id:\s*([0-9A-Fa-f-]{36})", line)
                   if match:
                       print(match.group(1))
                       break
           else:
-              sys.exit("No eligible iPhone simulator for the pinned Xcode")' <<< "$destinations")
+              sys.exit("No eligible iPhone simulator for the runner Xcode")' <<< "$destinations")
           xcodebuild -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
             -destination "platform=iOS Simulator,id=$device_id" \
-            -derivedDataPath "$RUNNER_TEMP/TeBankBuild" -parallel-testing-enabled NO \
+            -derivedDataPath "$RUNNER_TEMP/TeBankUITests" -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO test
