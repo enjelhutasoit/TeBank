@@ -4,7 +4,15 @@ import TeBankCore
 /// A single client and a single writer per store for all windows in the demo.
 @MainActor @Observable
 final class OnboardingDemo {
-    static let shared = OnboardingDemo(directory: URL.applicationSupportDirectory.appendingPathComponent("TeBankDemo"))
+    static let shared = OnboardingDemo(directory: storageDirectory)
+    private static var storageDirectory: URL {
+        #if DEBUG && targetEnvironment(simulator)
+        if ProcessInfo.processInfo.arguments.contains("--dashboard-ui-test") {
+            return URL.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        }
+        #endif
+        return URL.applicationSupportDirectory.appendingPathComponent("TeBankDemo")
+    }
     let model: OnboardingModel
     private let authority: FakeOnboardingAuthority
     private(set) var scenario: FakeOnboardingAuthority.Scenario = .normal
@@ -17,6 +25,21 @@ final class OnboardingDemo {
             service: authority
         )
     }
+
+    func approve() async {
+        guard case .reviewed(let id, .pending) = model.progress, !changingScenario, !model.isBusy else { return }
+        changingScenario = true
+        defer { changingScenario = false }
+        approvalFailed = false
+        do {
+            try await authority.approveForDemo(requestID: id)
+            await model.refresh()
+        } catch {
+            approvalFailed = true
+        }
+    }
+
+    private(set) var approvalFailed = false
 
     func select(_ value: FakeOnboardingAuthority.Scenario) async {
         guard !changingScenario else { return }
@@ -61,6 +84,9 @@ struct OnboardingScreen: View {
                     Text(status.title)
                     if status == .requiresAction {
                         Button("Ganti dengan sampel sintetis baru") { Task { await model.replaceSamples() } }
+                    }
+                    if status == .approved {
+                        NavigationLink("Buka dashboard") { BusinessDashboard(ledger: .sample) }
                     }
                     refreshButton
                 }
