@@ -94,17 +94,18 @@ jobs:
           # Use the runner Xcode that owns the installed simulator runtime.
           unset DEVELOPER_DIR
           xcodebuild -version
-          destinations=$(xcodebuild -project TeBank.xcodeproj -scheme TeBank -showdestinations)
-          device_id=$(python3 -c 'import re, sys
-          eligible = sys.stdin.read().split("Ineligible destinations")[0]
-          for line in eligible.splitlines():
-              if "platform:iOS Simulator," in line and "name:iPhone" in line:
-                  match = re.search(r"id:\s*([0-9A-Fa-f-]{36})", line)
-                  if match:
-                      print(match.group(1))
-                      break
-          else:
-              sys.exit("No eligible iPhone simulator for the runner Xcode")' <<< "$destinations")
+          devices=$(xcrun simctl list devices available -j)
+          device_id=$(python3 -c 'import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          for runtime, group in reversed(sorted(devices.items())):
+              if ".iOS-" not in runtime:
+                  continue
+              for device in group:
+                  if device["name"].startswith("iPhone"):
+                      print(device["udid"])
+                      sys.exit(0)
+          sys.exit("The runner image has no preinstalled iPhone simulator")' <<< "$devices")
+          xcodebuild -project TeBank.xcodeproj -scheme TeBank -showdestinations
           xcodebuild -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
             -destination "platform=iOS Simulator,id=$device_id" \
             -derivedDataPath "$RUNNER_TEMP/TeBankUITests" -parallel-testing-enabled NO \
