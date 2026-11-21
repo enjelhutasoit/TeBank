@@ -50,7 +50,7 @@ jobs:
           fi
           echo "full=$full" >> "$GITHUB_OUTPUT"
           echo "smoke=$smoke" >> "$GITHUB_OUTPUT"
-          echo "Package tests and iOS build: $full. Simulator launch: $smoke." >> "$GITHUB_STEP_SUMMARY"
+          echo "Package tests and iOS build: $full. Simulator UI test: $smoke." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify pinned toolchain
         if: steps.scope.outputs.full == 'true'
@@ -74,22 +74,14 @@ jobs:
         if: steps.scope.outputs.full == 'true'
         run: xcrun swift test --disable-automatic-resolution -Xswiftc -warnings-as-errors
 
-      - name: Ensure Xcode 16.2 has an iOS simulator destination
-        if: steps.scope.outputs.full == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          destinations=$(xcodebuild -project TeBank.xcodeproj -scheme TeBank -showdestinations)
-          if ! awk '/Ineligible destinations/ { exit } /platform:iOS Simulator,/ { found=1 } END { exit !found }' <<< "$destinations"; then
-            printf '%s\n' "$destinations"
-            xcodebuild -downloadPlatform iOS
-          fi
-
       - name: Build the iOS shell
-        if: steps.scope.outputs.full == 'true'
+        if: steps.scope.outputs.full == 'true' && steps.scope.outputs.smoke != 'true'
         shell: bash
         run: |
           set -euo pipefail
+          # Use the preinstalled iOS SDK from the runner's default Xcode.
+          unset DEVELOPER_DIR
+          xcodebuild -version
           xcodebuild -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/TeBankBuild" CODE_SIGNING_ALLOWED=NO build
