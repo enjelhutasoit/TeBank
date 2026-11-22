@@ -1,0 +1,22 @@
+{
+  "pins": [
+    {
+      "identity": "biometric-session-sdk",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/enjelhutasoit/biometric-session-sdk.git",
+      "state": {
+        "revision": "9b6b24bb87933ae4308012b3c9f1f9953048b34e",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "identity": "vanekit",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/enjelhutasoit/VaneKit.git",
+      "state": {
+        "revision": "b767fd63946cd654d72a3a695ff7664765529073"
+      }
+    }
+  ],
+  "version": 2
+}
