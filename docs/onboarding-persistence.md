@@ -8,9 +8,9 @@ TeBank uses two independent local data stores to model a client and a remote aut
 | Fake authority | One review decision per UUID | Read an existing decision before creating one. When simulating response loss, finish the atomic write before throwing. |
 | Scene | No persisted unlock flag | Start behind a lock screen and replace the scene session on background entry. Device authentication opens the current scene. |
 
-Each store assumes one actor instance per writable location in one process. Atomic replacement keeps readers from seeing a partial record. It does not provide a cross-process transaction spanning both stores. A missing client response can therefore coexist with a durable authority decision. The next onboarding milestone uses status lookup to reconcile them.
+Each store assumes one actor instance per writable location in one process. Atomic replacement keeps readers from seeing a partial record. It does not provide a cross-process transaction spanning both stores. A missing client response can therefore coexist with a durable authority decision. When the app resumes an interrupted submission, it uses the saved request ID to look up the authority's decision.
 
-The session gate uses BiometricSession at revision `24f1f7972aeeabdb3e295c5000445e747743d3af` with device passcode fallback. The SDK owns the authentication prompt. The app owns scene replacement and the opaque inactive-state cover. Switching to the background discards in-memory navigation. A temporary inactive transition during a system prompt only covers the window. Unlocking has no effect on the simulated authority.
+The session gate uses BiometricSession with device passcode fallback. The [Xcode workspace lockfile](../TeBank.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved) records the SDK version and revision. The SDK owns the authentication prompt. The app owns scene replacement and the opaque inactive-state cover. Switching to the background discards in-memory navigation. A temporary inactive transition during a system prompt only covers the window. Unlocking has no effect on the simulated authority.
 
 ## Manual verification on iOS
 
