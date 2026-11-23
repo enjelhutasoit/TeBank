@@ -27,8 +27,8 @@
         "26DA0000000000000000000A" = { isa = PBXContainerItemProxy; containerPortal = "244210E48437B6556980A702"; proxyType = 1; remoteGlobalIDString = "34A04005BCAF206EEC990BD9"; remoteInfo = TeBank; };
         "B105E5510000000000000001" = {
             "isa" = "XCRemoteSwiftPackageReference";
-            "repositoryURL" = "https://github.com/enjelhutasoit-com/biometric-session-sdk.git";
-            "requirement" = { "kind" = "revision"; "revision" = "24f1f7972aeeabdb3e295c5000445e747743d3af"; };
+            "repositoryURL" = "https://github.com/enjelhutasoit/biometric-session-sdk.git";
+            "requirement" = { "kind" = "exactVersion"; "version" = "1.0.0"; };
         };
         "B105E5510000000000000002" = { "isa" = "XCSwiftPackageProductDependency"; "package" = "B105E5510000000000000001"; "productName" = "BiometricSessionCore"; };
         "B105E5510000000000000004" = { "isa" = "PBXBuildFile"; "productRef" = "B105E5510000000000000002"; };
