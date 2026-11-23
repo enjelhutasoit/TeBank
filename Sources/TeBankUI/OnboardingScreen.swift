@@ -14,6 +14,7 @@ final class OnboardingDemo {
         return URL.applicationSupportDirectory.appendingPathComponent("TeBankDemo")
     }
     let model: OnboardingModel
+    let paymentLinks = FakePaymentLinkService()
     private let authority: FakeOnboardingAuthority
     private(set) var scenario: FakeOnboardingAuthority.Scenario = .normal
     private(set) var changingScenario = false
@@ -86,7 +87,9 @@ struct OnboardingScreen: View {
                         Button("Ganti dengan sampel sintetis baru") { Task { await model.replaceSamples() } }
                     }
                     if status == .approved {
-                        NavigationLink("Buka dashboard") { BusinessDashboard(ledger: .sample) }
+                        NavigationLink("Buka dashboard") {
+                            BusinessDashboard(ledger: .sample, paymentLinks: demo.paymentLinks)
+                        }
                     }
                     refreshButton
                 }

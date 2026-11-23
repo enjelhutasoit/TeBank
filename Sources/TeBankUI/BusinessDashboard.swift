@@ -4,6 +4,7 @@ import VaneKit
 
 struct BusinessDashboard: View {
     let ledger: DemoLedger
+    let paymentLinks: any PaymentLinkService
 
     @Environment(\.vaneTheme) private var theme
     @Environment(\.colorScheme) private var scheme
@@ -28,6 +29,11 @@ struct BusinessDashboard: View {
                 .accessibilityValue(Text("\(ledger.balance.formatted(.number.locale(Locale(identifier: "id_ID")))) rupiah"))
                 .accessibilityIdentifier("dashboard.balance")
 
+                NavigationLink("Buat link pembayaran") {
+                    CreatePaymentLinkView(service: paymentLinks)
+                }
+                .buttonStyle(.bordered)
+
                 Text("Aktivitas terbaru").font(.headline).accessibilityAddTraits(.isHeader)
                 ForEach(ledger.entries) { entry in
                     NavigationLink {
@@ -40,7 +46,7 @@ struct BusinessDashboard: View {
                         }
                         .padding(.vertical, 6)
                     }
-                    .accessibilityLabel(transactionLabel(for: entry))
+                    .accessibilityLabel(Text("\(entry.title), \(entry.note), \(entry.amount < 0 ? "Keluar" : "Masuk") \(rupiah(entry.amount))"))
                     .accessibilityIdentifier("transaction.\(entry.id)")
                     .buttonStyle(.plain)
                 }
@@ -54,12 +60,6 @@ struct BusinessDashboard: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-    }
-
-    private func transactionLabel(for entry: DemoLedger.Entry) -> Text {
-        let direction = entry.amount < 0 ? "Keluar" : "Masuk"
-        let amount = entry.amount.magnitude.formatted(.number.locale(Locale(identifier: "id_ID")))
-        return Text("\(entry.title), \(entry.note), \(direction), \(amount) rupiah")
     }
 }
 
@@ -85,6 +85,6 @@ private struct TransactionDetail: View {
     }
 }
 
-private func rupiah(_ amount: Int64) -> String {
+func rupiah(_ amount: Int64) -> String {
     amount.formatted(.currency(code: "IDR").precision(.fractionLength(0)).locale(Locale(identifier: "id_ID")))
 }
