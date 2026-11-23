@@ -44,7 +44,7 @@ git rev-parse HEAD
 
 Record the tested commit, simulator and result. The script runs the SwiftPM tests and the approval-to-transaction-detail UI test, including the dashboard and detail accessibility audits.
 
-[CI run #44](https://github.com/enjelhutasoit/TeBank/actions/runs/45108475355) passed 19 SwiftPM tests with Xcode 16.2 and the iOS simulator UI test with Xcode 16.4. Local simulator verification on Xcode 16.2, manual VoiceOver and Dynamic Type checks, Instruments measurements and the demo recording are pending. See the [Slice A walkthrough and verification record](docs/slice-a-demo.md).
+[CI run #44](https://github.com/enjelhutasoit/TeBank/actions/runs/45108475355) passed 19 SwiftPM tests with Xcode 16.2 and the iOS simulator UI test with Xcode 16.4. The maintainer reported that the app launched from Xcode 16.2 on an Intel Mac and that `./verify.sh` ended with `** TEST SUCCEEDED **` in the same local checkout. Manual VoiceOver and Dynamic Type checks, Instruments measurements and the demo recording remain pending. See the [Slice A walkthrough and verification record](docs/slice-a-demo.md).
 
 ## Module boundaries
 
