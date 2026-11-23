@@ -52,9 +52,10 @@ final class DashboardFlowTests: XCTestCase {
         }
         app.navigationBars.buttons.element(boundBy: 0).tap()
         tap("Buka dashboard", in: app)
-        let balance = app.staticTexts["dashboard.balance"]
+        let balance = app.descendants(matching: .any)["dashboard.balance"]
         XCTAssertTrue(balance.waitForExistence(timeout: 10))
-        XCTAssertTrue(balance.label.contains("7.850.000"))
+        XCTAssertEqual(balance.label, "Saldo simulasi")
+        XCTAssertEqual(balance.value as? String, "7.850.000 rupiah")
         try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .sufficientElementDescription]) { issue in
             print("Accessibility finding: \(issue.compactDescription) on \(issue.element?.debugDescription ?? "unknown element")")
             return false

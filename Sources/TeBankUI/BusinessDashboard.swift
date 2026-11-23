@@ -17,13 +17,16 @@ struct BusinessDashboard: View {
                     Text(rupiah(ledger.balance))
                         .font(.largeTitle.weight(.semibold))
                         .monospacedDigit()
-                        .accessibilityLabel(Text("Saldo simulasi, \(ledger.balance.formatted(.number.locale(Locale(identifier: "id_ID")))) rupiah"))
-                        .accessibilityIdentifier("dashboard.balance")
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, 16)
                 .padding(.horizontal)
                 .background(theme.color(.surface, for: scheme), in: RoundedRectangle(cornerRadius: 16))
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("Saldo simulasi"))
+                .accessibilityValue(Text("\(ledger.balance.formatted(.number.locale(Locale(identifier: "id_ID")))) rupiah"))
+                .accessibilityIdentifier("dashboard.balance")
 
                 Text("Aktivitas terbaru").font(.headline).accessibilityAddTraits(.isHeader)
                 ForEach(ledger.entries) { entry in
