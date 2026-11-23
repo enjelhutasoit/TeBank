@@ -1,6 +1,6 @@
 # TeBank
 
-TeBank is an independent, unofficial iOS prototype for demonstrating business banking workflows with synthetic data. Public Nobank materials informed the product research. TeBank has no affiliation with or endorsement from Nobank.
+TeBank is an independent, unofficial iOS prototype for demonstrating business banking workflows with synthetic data.
 
 ## Prototype scope
 
@@ -10,7 +10,7 @@ TeBank is an independent, unofficial iOS prototype for demonstrating business ba
 - Device-authenticated sessions with passcode fallback.
 - Synthetic business onboarding with local checkpoint recovery and configurable failure scenarios.
 
-TeBank does not open bank accounts or collect identity photos. The onboarding sequence is an independent demo design. Nobank advertises online registration on its [digital business account page](https://nobank.id/fitur/rekening-digital).
+TeBank does not open bank accounts or collect identity photos. The onboarding sequence is an independent demo design.
 
 ## Run locally
 
