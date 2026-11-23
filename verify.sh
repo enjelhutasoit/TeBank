@@ -20,5 +20,5 @@ for line in sys.stdin:
 sys.exit("No installed iPhone simulator is eligible in Xcode 16.2.")' <<< "$destinations")
 arch=$(uname -m)
 xcodebuild -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
-  -destination "platform=iOS Simulator,id=$device,arch=$arch" \
+  -destination "platform=iOS Simulator,id=$device" \
   -parallel-testing-enabled NO ARCHS="$arch" CODE_SIGNING_ALLOWED=NO test
