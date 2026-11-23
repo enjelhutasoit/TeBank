@@ -31,4 +31,4 @@ A deployed service would need authenticated sessions, per-account authorization,
 
 ## Demo recording
 
-- Capture the walkthrough from the iPhone simulator and record the tested SHA. Review the clip for readable status transitions before sharing.
+The reviewed 1:31 simulator recording shows an unconfirmed submission, recovery to pending review after relaunch, approval, transaction detail `DEMO-003`, the app switcher privacy cover, and a session lock. The maintainer reported `f202dcb` and iPhone 16 Simulator with iOS 18.3 for the recording setup.
