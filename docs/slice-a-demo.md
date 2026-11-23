@@ -1,6 +1,6 @@
 # Slice A interview walkthrough
 
-Use the normal app launch on an enrolled iPhone. Start with a fresh synthetic draft in the demo lab. All timings below are a rehearsal plan.
+Use the normal app launch on an iPhone simulator with biometrics enrolled. Start with a fresh synthetic draft in the demo lab. All timings below are a rehearsal plan.
 
 | Time | Action | Evidence to show |
 | --- | --- | --- |
@@ -22,6 +22,13 @@ A deployed service would need authenticated sessions, per-account authorization,
 - [CI run #44](https://github.com/enjelhutasoit/TeBank/actions/runs/45108475355) passed 19 package tests on Xcode 16.2. The approval-to-detail UI test passed on Xcode 16.4, including the Dynamic Type, clipped text and element description audits on both screens.
 - Local release gate: run `./verify.sh` on the Intel Mac with Xcode 16.2 selected and an eligible simulator already installed. Record the SHA, simulator and result.
 - Local Intel simulator result (23 November 2026, WIB): the maintainer reported a successful Xcode Run on a MacBook Pro (2018, Intel) with Xcode 16.2, followed by `** TEST SUCCEEDED **` from `./verify.sh`. The local checkout used `x86_64` for the app target’s Debug iOS Simulator build to match the architecture of `BiometricSessionCore`. The tested SHA and exact script diff were not recorded with the successful run. Re-run verification on the intended release commit before tagging.
-- Device evidence pending: on the normal app entry point, enable VoiceOver and the largest accessibility text size. Traverse onboarding, lab, dashboard and detail. Check focus order, spoken transaction direction and amount, wrapping, scroll reachability, and the privacy cover. Record actual findings with the device, OS and SHA.
-- Instruments evidence pending: profile a Release build on the iPhone. Record cold launch with App Launch and the consent, submit and restart sequence with File Activity. Save traces and record observed startup times, checkpoint writes and main-thread I/O before proposing performance changes.
-- Capture the walkthrough with iOS screen recording and record the tested SHA. Review the clip for readable status transitions and personal notifications before sharing.
+- [CI #56](https://github.com/enjelhutasoit/TeBank/actions/runs/45180297909) passed SwiftPM and the simulator approval-to-detail test with credit and debit accessibility label assertions at `f202dcb`.
+
+## Deferred physical-device verification
+
+- Manual accessibility audit: on the normal app entry point, enable VoiceOver and the largest accessibility text size. Traverse onboarding, lab, dashboard and detail. Check focus order, spoken transaction direction and amount, wrapping, scroll reachability, and the privacy cover. Record actual findings with the device, OS and SHA.
+- Instruments profiling: profile a Release build on the iPhone. Record cold launch with App Launch and the consent, submit and restart sequence with File Activity. Save traces and record observed startup times, checkpoint writes and main-thread I/O before proposing performance changes.
+
+## Demo recording
+
+- Capture the walkthrough from the iPhone simulator and record the tested SHA. Review the clip for readable status transitions before sharing.
