@@ -19,7 +19,7 @@ A deployed service would need authenticated sessions, per-account authorization,
 ## Verification record
 
 - [Dashboard baseline on main](https://github.com/enjelhutasoit/TeBank/actions/runs/44930156336) verified the package tests and the simulator approval-to-detail flow. The workflow uses Xcode 16.2 for package tests and the runner's default Xcode for simulator UI testing.
-- The dashboard UI test also requests XCTest audits for Dynamic Type, clipped text and element descriptions on dashboard and detail. Automated inspection covers the visible accessibility tree.
+- [CI run #44](https://github.com/enjelhutasoit/TeBank/actions/runs/45108475355) passed 19 package tests on Xcode 16.2. The approval-to-detail UI test passed on Xcode 16.4, including the Dynamic Type, clipped text and element description audits on both screens.
 - Local release gate: run `./verify.sh` on the Intel Mac with Xcode 16.2 selected and an eligible simulator already installed. Record the SHA, simulator and result.
 - Device evidence pending: on the normal app entry point, enable VoiceOver and the largest accessibility text size. Traverse onboarding, lab, dashboard and detail. Check focus order, spoken transaction direction and amount, wrapping, scroll reachability, and the privacy cover. Record actual findings with the device, OS and SHA.
 - Instruments evidence pending: profile a Release build on the iPhone. Record cold launch with App Launch and the consent, submit and restart sequence with File Activity. Save traces and record observed startup times, checkpoint writes and main-thread I/O before proposing performance changes.
