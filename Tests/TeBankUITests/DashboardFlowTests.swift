@@ -63,6 +63,9 @@ final class DashboardFlowTests: XCTestCase {
         let firstEntry = app.buttons["transaction.DEMO-003"]
         XCTAssertTrue(firstEntry.label.contains("Masuk"))
         XCTAssertTrue(firstEntry.label.contains("Toko Reka"))
+        XCTAssertTrue(firstEntry.label.contains("1.200.000 rupiah"))
+        let debit = app.buttons["transaction.DEMO-002"]
+        XCTAssertTrue(debit.label.contains("Keluar, 425.000 rupiah"))
         tap("transaction.DEMO-003", in: app)
         let reference = app.staticTexts["transaction.detail.reference"]
         XCTAssertTrue(reference.waitForExistence(timeout: 15))
