@@ -86,7 +86,19 @@ final class DashboardFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Rekening, 0017"].exists)
         tap("Periksa status transfer", in: app)
         XCTAssertTrue(app.staticTexts["Diterima untuk diproses"].waitForExistence(timeout: 15))
-        XCTAssertTrue(app.buttons["Transfer baru"].exists)
+        tap("Transfer baru", in: app)
+        XCTAssertTrue(app.textFields["Nama penerima demo"].waitForExistence(timeout: 10))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        tap("Riwayat transfer", in: app)
+        let archived = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "history.transfer.")).firstMatch
+        XCTAssertTrue(archived.waitForExistence(timeout: 10))
+        let expectedReference = String(archived.identifier.dropFirst("history.transfer.".count))
+        XCTAssertNotNil(UUID(uuidString: expectedReference))
+        archived.tap()
+        XCTAssertTrue(app.staticTexts["Rekening, 0017"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Referensi, " + expectedReference].exists)
+        XCTAssertTrue(app.staticTexts["Diterima untuk diproses"].waitForExistence(timeout: 15))
+        XCTAssertFalse(app.buttons["Konfirmasi transfer demo"].exists)
     }
 
     @MainActor
