@@ -140,6 +140,7 @@ final class LocalTransferModel {
 
 struct LocalTransferScreen: View {
     @Bindable var model: LocalTransferModel
+    @State private var showsReviewError = false
 
     var body: some View {
         Form {
@@ -156,7 +157,15 @@ struct LocalTransferScreen: View {
                     TextField("Nominal rupiah", text: $model.amount)
                 }
                 Toggle("Simulasikan respons hilang", isOn: $model.loseResponse)
-                Button("Tinjau transfer") { model.review() }
+                Button("Tinjau transfer") {
+                    model.review()
+                    showsReviewError = model.errorMessage != nil
+                }
+                .alert("Periksa rincian transfer", isPresented: $showsReviewError, presenting: model.errorMessage) { _ in
+                    Button("Perbaiki", role: .cancel) {}
+                } message: { message in
+                    Text(message)
+                }
             case let .review(request):
                 TransferSummary(request: request)
                 Button("Konfirmasi transfer demo") { Task { await model.submit() } }

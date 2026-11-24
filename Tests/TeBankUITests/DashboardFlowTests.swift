@@ -53,6 +53,11 @@ final class DashboardFlowTests: XCTestCase {
     @MainActor
     private func exerciseLocalTransfer(in app: XCUIApplication) {
         tap("Transfer lokal", in: app)
+        tap("Tinjau transfer", in: app)
+        let alert = app.alerts["Periksa rincian transfer"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 10))
+        XCTAssertTrue(alert.staticTexts["Masukkan nominal dalam rupiah bulat."].exists)
+        alert.buttons["Perbaiki"].tap()
         enterTransferDetails(in: app)
         tap("Tinjau transfer", in: app)
         XCTAssertTrue(app.staticTexts["Rekening, 0017"].waitForExistence(timeout: 10))
