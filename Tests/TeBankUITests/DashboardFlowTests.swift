@@ -53,17 +53,50 @@ final class DashboardFlowTests: XCTestCase {
     @MainActor
     private func exerciseLocalTransfer(in app: XCUIApplication) {
         tap("Transfer lokal", in: app)
+        enterTransferDetails(in: app)
+        tap("Tinjau transfer", in: app)
+        XCTAssertTrue(app.staticTexts["Rekening, 0017"].waitForExistence(timeout: 10))
+        tap("Konfirmasi transfer demo", in: app)
+        XCTAssertTrue(app.staticTexts["Diterima untuk diproses"].waitForExistence(timeout: 15))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+    }
+
+    @MainActor
+    func testPendingTransferCanBeReopenedAndReconciled() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments.append("--dashboard-ui-test")
+        app.launch()
+        try openApprovedDashboard(in: app)
+        tap("Transfer lokal", in: app)
+        let loseResponse = app.switches["Simulasikan respons hilang"]
+        XCTAssertTrue(loseResponse.waitForExistence(timeout: 10))
+        loseResponse.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        XCTAssertEqual(loseResponse.value as? String, "1")
+        enterTransferDetails(in: app)
+        tap("Tinjau transfer", in: app)
+        tap("Konfirmasi transfer demo", in: app)
+
+        let pending = app.staticTexts["Hasil belum diketahui"]
+        XCTAssertTrue(pending.waitForExistence(timeout: 15))
+        XCTAssertFalse(app.buttons["Transfer baru"].exists)
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        tap("Transfer lokal", in: app)
+        XCTAssertTrue(pending.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Rekening, 0017"].exists)
+        tap("Periksa status transfer", in: app)
+        XCTAssertTrue(app.staticTexts["Diterima untuk diproses"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.buttons["Transfer baru"].exists)
+    }
+
+    @MainActor
+    private func enterTransferDetails(in app: XCUIApplication) {
         for (label, value) in [("Nama penerima demo", "Rani"), ("Bank demo", "Demo"),
                                ("Nomor rekening demo", "0017"), ("Nominal rupiah", "12500")] {
             let field = app.textFields[label]
             field.tap()
             field.typeText(value)
         }
-        tap("Tinjau transfer", in: app)
-        XCTAssertTrue(app.staticTexts["Rekening, 0017"].waitForExistence(timeout: 10))
-        tap("Konfirmasi transfer demo", in: app)
-        XCTAssertTrue(app.staticTexts["Diterima untuk diproses"].waitForExistence(timeout: 15))
-        app.navigationBars.buttons.element(boundBy: 0).tap()
     }
 
     @MainActor
