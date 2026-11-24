@@ -39,12 +39,12 @@ jobs:
           smoke=true
           # An unavailable base (for example, a multi-commit push) gets full CI.
           if git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null &&
-             git diff --quiet "$BASE_SHA" HEAD -- . ':(exclude,top)README.md'; then
+             git diff --quiet "$BASE_SHA" HEAD -- . ':(exclude,glob)**/*.md'; then
             full=false
             smoke=false
           elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]] &&
                git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null &&
-               git diff --quiet "$BASE_SHA" HEAD -- . ':(exclude,top)README.md' \
+               git diff --quiet "$BASE_SHA" HEAD -- . ':(exclude,glob)**/*.md' \
                  ':(exclude,top)Sources/TeBankCore/**' ':(exclude,top)Tests/TeBankCoreTests/**'; then
             smoke=false
           fi
