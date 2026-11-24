@@ -51,6 +51,9 @@ struct BusinessDashboard: View {
                 NavigationLink("Transfer lokal") { LocalTransferScreen(model: transfers) }
                     .buttonStyle(.bordered)
 
+                NavigationLink("Riwayat transfer") { TransferHistoryView(store: transfers.checkpoint) }
+                    .buttonStyle(.bordered)
+
                 Text("Aktivitas terbaru").font(.headline).accessibilityAddTraits(.isHeader)
                 ForEach(ledger.entries) { entry in
                     NavigationLink {
@@ -111,4 +114,49 @@ private struct TransactionDetail: View {
 
 func rupiah(_ amount: Int64) -> String {
     amount.formatted(.currency(code: "IDR").precision(.fractionLength(0)).locale(Locale(identifier: "id_ID")))
+}
+
+private struct TransferHistoryView: View {
+    let store: LocalTransferCheckpointStore
+    @State private var transfers: [LocalTransfer]?
+    @State private var failed = false
+
+    var body: some View {
+        Group {
+            if failed {
+                VStack {
+                    Text("Riwayat transfer belum dapat dimuat.")
+                    Button("Coba lagi") { Task { await load() } }
+                }
+            } else if let transfers {
+                if transfers.isEmpty {
+                    Text("Belum ada transfer yang diarsipkan.")
+                } else {
+                    List(transfers) { transfer in
+                        VStack(alignment: .leading) {
+                            Text(transfer.beneficiary).font(.headline)
+                            Text("\(transfer.bank) · \(transfer.account)")
+                            Text(rupiah(transfer.rupiah))
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
+                }
+            } else {
+                ProgressView("Memuat riwayat")
+            }
+        }
+        .navigationTitle("Riwayat transfer")
+        .task { await load() }
+    }
+
+    @MainActor
+    private func load() async {
+        failed = false
+        do {
+            let store = self.store
+            transfers = try await Task.detached { try store.archivedTransfers() }.value
+        } catch {
+            failed = true
+        }
+    }
 }
