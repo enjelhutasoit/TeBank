@@ -10,6 +10,14 @@
       }
     },
     {
+      "identity": "swifttransferkit",
+      "kind": "remoteSourceControl",
+      "location": "https://github.com/enjelhutasoit/SwiftTransferKit.git",
+      "state": {
+        "revision": "006b24895dc1201bdbdba1e2f773d0f5ced873ea"
+      }
+    },
+    {
       "identity": "vanekit",
       "kind": "remoteSourceControl",
       "location": "https://github.com/enjelhutasoit/VaneKit.git",
