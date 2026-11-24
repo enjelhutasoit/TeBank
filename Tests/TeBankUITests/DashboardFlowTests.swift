@@ -22,6 +22,53 @@ final class DashboardFlowTests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 15), "TeBank did not reach the foreground")
+        try openApprovedDashboard(in: app)
+        let balance = app.descendants(matching: .any)["dashboard.balance"]
+        XCTAssertTrue(balance.waitForExistence(timeout: 10))
+        XCTAssertEqual(balance.label, "Saldo simulasi")
+        XCTAssertEqual(balance.value as? String, "7.850.000 rupiah")
+        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .sufficientElementDescription]) { issue in
+            print("Accessibility finding: \(issue.compactDescription) on \(issue.element?.debugDescription ?? "unknown element")")
+            return false
+        }
+        let firstEntry = app.buttons["transaction.DEMO-003"]
+        XCTAssertTrue(firstEntry.label.contains("Masuk"))
+        XCTAssertTrue(firstEntry.label.contains("Toko Reka"))
+        XCTAssertTrue(firstEntry.label.contains("1.200.000 rupiah"))
+        let debit = app.buttons["transaction.DEMO-002"]
+        XCTAssertTrue(debit.label.contains("Keluar, 425.000 rupiah"))
+        tap("transaction.DEMO-003", in: app)
+        let reference = app.staticTexts["transaction.detail.reference"]
+        XCTAssertTrue(reference.waitForExistence(timeout: 15))
+        XCTAssertEqual(reference.label, "DEMO-003")
+        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .sufficientElementDescription]) { issue in
+            print("Accessibility finding: \(issue.compactDescription) on \(issue.element?.debugDescription ?? "unknown element")")
+            return false
+        }
+    }
+
+    @MainActor
+    func testCreateAndPresentPaymentLinkShareSheet() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments.append("--dashboard-ui-test")
+        app.launch()
+        try openApprovedDashboard(in: app)
+        tap("Buat link pembayaran", in: app)
+        let title = app.textFields["Judul pembayaran"]
+        title.tap()
+        title.typeText("Pesanan demo")
+        let amount = app.textFields["Nominal (rupiah)"]
+        amount.tap()
+        amount.typeText("50000")
+        tap("Buat link", in: app)
+        tap("Bagikan link demo", in: app)
+        XCTAssertTrue(app.otherElements["ActivityListView"].waitForExistence(timeout: 15),
+                      "Expected the system activity sheet after sharing a synthetic link")
+    }
+
+    @MainActor
+    private func openApprovedDashboard(in app: XCUIApplication) throws {
         tap("Pendaftaran bisnis", in: app)
         XCTAssertFalse(app.buttons["Buka dashboard"].exists)
         let consent = app.switches["Setuju mengikuti simulasi"]
@@ -52,28 +99,6 @@ final class DashboardFlowTests: XCTestCase {
         }
         app.navigationBars.buttons.element(boundBy: 0).tap()
         tap("Buka dashboard", in: app)
-        let balance = app.descendants(matching: .any)["dashboard.balance"]
-        XCTAssertTrue(balance.waitForExistence(timeout: 10))
-        XCTAssertEqual(balance.label, "Saldo simulasi")
-        XCTAssertEqual(balance.value as? String, "7.850.000 rupiah")
-        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .sufficientElementDescription]) { issue in
-            print("Accessibility finding: \(issue.compactDescription) on \(issue.element?.debugDescription ?? "unknown element")")
-            return false
-        }
-        let firstEntry = app.buttons["transaction.DEMO-003"]
-        XCTAssertTrue(firstEntry.label.contains("Masuk"))
-        XCTAssertTrue(firstEntry.label.contains("Toko Reka"))
-        XCTAssertTrue(firstEntry.label.contains("1.200.000 rupiah"))
-        let debit = app.buttons["transaction.DEMO-002"]
-        XCTAssertTrue(debit.label.contains("Keluar, 425.000 rupiah"))
-        tap("transaction.DEMO-003", in: app)
-        let reference = app.staticTexts["transaction.detail.reference"]
-        XCTAssertTrue(reference.waitForExistence(timeout: 15))
-        XCTAssertEqual(reference.label, "DEMO-003")
-        try app.performAccessibilityAudit(for: [.dynamicType, .textClipped, .sufficientElementDescription]) { issue in
-            print("Accessibility finding: \(issue.compactDescription) on \(issue.element?.debugDescription ?? "unknown element")")
-            return false
-        }
     }
 
     @MainActor
