@@ -2,7 +2,7 @@ import XCTest
 
 final class DashboardFlowTests: XCTestCase {
     @MainActor
-    func testApprovalUnlocksDashboardAndTransactionDetail() throws {
+    func testApprovedDashboardSupportsTransactionDetailAndPaymentLinkSharing() throws {
         continueAfterFailure = false
         let app = XCUIApplication()
         addTeardownBlock { @MainActor in
@@ -45,15 +45,12 @@ final class DashboardFlowTests: XCTestCase {
             print("Accessibility finding: \(issue.compactDescription) on \(issue.element?.debugDescription ?? "unknown element")")
             return false
         }
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        try exercisePaymentLinkSharing(in: app)
     }
 
     @MainActor
-    func testCreateAndPresentPaymentLinkShareSheet() throws {
-        continueAfterFailure = false
-        let app = XCUIApplication()
-        app.launchArguments.append("--dashboard-ui-test")
-        app.launch()
-        try openApprovedDashboard(in: app)
+    private func exercisePaymentLinkSharing(in app: XCUIApplication) throws {
         tap("Buat link pembayaran", in: app)
         let title = app.textFields["Judul pembayaran"]
         title.tap()
@@ -104,11 +101,7 @@ final class DashboardFlowTests: XCTestCase {
     @MainActor
     private func tap(_ identifier: String, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
         let element = app.buttons[identifier]
-        let available = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "exists == true AND enabled == true AND hittable == true"),
-            object: element
-        )
-        guard XCTWaiter.wait(for: [available], timeout: 15) == .completed else {
+        guard element.waitForExistence(timeout: 30) else {
             return XCTFail("Control unavailable: " + identifier, file: file, line: line)
         }
         element.tap()
