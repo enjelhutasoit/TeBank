@@ -17,30 +17,30 @@ final class LocalTransferModel {
     var loseResponse = false
     private(set) var step = Step.entry
     private(set) var busy = false
-    private(set) var error: String?
+    private(set) var errorMessage: String?
     private var service: (any LocalTransferService)?
     private let directory: URL
 
     init(directory: URL) { self.directory = directory }
 
     func review() {
-        error = nil
+        errorMessage = nil
         guard amount.utf8.allSatisfy({ (48...57).contains($0) }), let value = Int64(amount) else {
-            error = "Masukkan nominal dalam rupiah bulat."
+            errorMessage = "Masukkan nominal dalam rupiah bulat."
             return
         }
         do {
             step = .review(try LocalTransfer(beneficiary: beneficiary, bank: bank, account: account, rupiah: value))
         } catch LocalTransfer.ValidationError.invalidRecipient {
-            error = "Isi nama, bank, dan nomor rekening demo dengan benar."
+            errorMessage = "Isi nama, bank, dan nomor rekening demo dengan benar."
         } catch {
-            error = "Nominal rupiah tidak valid."
+            errorMessage = "Nominal rupiah tidak valid."
         }
     }
 
     func edit() {
         guard !busy else { return }
-        error = nil
+        errorMessage = nil
         service = nil
         step = .entry
     }
@@ -49,7 +49,7 @@ final class LocalTransferModel {
         guard case let .review(request) = step, !busy else { return }
         busy = true
         defer { busy = false }
-        error = nil
+        errorMessage = nil
         do {
             if service == nil {
                 let path = directory.appendingPathComponent("transfers.sqlite")
@@ -61,7 +61,7 @@ final class LocalTransferModel {
             guard let service else { return }
             step = .status(request, try await service.submit())
         } catch {
-            error = "Pengiriman belum dapat diproses. Coba kembali."
+            errorMessage = "Pengiriman belum dapat diproses. Coba kembali."
         }
     }
 
@@ -69,9 +69,9 @@ final class LocalTransferModel {
         guard case let .status(request, _) = step, let service, !busy else { return }
         busy = true
         defer { busy = false }
-        error = nil
+        errorMessage = nil
         do { step = .status(request, try await service.checkStatus()) }
-        catch { error = "Status belum dapat diperiksa. Coba kembali." }
+        catch { errorMessage = "Status belum dapat diperiksa. Coba kembali." }
     }
 
     func startNew() {
@@ -119,7 +119,7 @@ struct LocalTransferScreen: View {
                     }
                 }
             }
-            if let error = model.error { Text(error) }
+            if let errorMessage = model.errorMessage { Text(errorMessage) }
             if model.busy { ProgressView("Memproses") }
         }
         .disabled(model.busy)
