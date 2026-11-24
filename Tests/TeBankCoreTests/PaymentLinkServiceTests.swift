@@ -74,7 +74,10 @@ final class PaymentLinkServiceTests: XCTestCase {
             XCTAssertEqual(error, .responseLost)
         }
 
+        let committed = await service.allLinks()
+        XCTAssertEqual(committed.count, 1)
         let recovered = try await service.create(request, idempotencyKey: key)
+        XCTAssertEqual(committed.first, recovered)
         let paid = try await service.simulatePayment(id: recovered.id)
         let repeated = try await service.simulatePayment(id: recovered.id)
         let refreshed = try await service.find(id: recovered.id)

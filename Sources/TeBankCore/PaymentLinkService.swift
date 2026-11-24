@@ -2,6 +2,7 @@ import Foundation
 
 public protocol PaymentLinkService: Sendable {
     func create(_ request: PaymentLinkRequest, idempotencyKey: UUID) async throws -> PaymentLink
+    func allLinks() async -> [PaymentLink]
     func find(id: UUID) async throws -> PaymentLink?
 }
 
@@ -44,6 +45,13 @@ public actor FakePaymentLinkService: PaymentLinkDemoService {
             throw PaymentLinkDemoError.responseLost
         }
         return link
+    }
+
+    public func allLinks() -> [PaymentLink] {
+        linksByID.values.sorted { lhs, rhs in
+            if lhs.createdAt == rhs.createdAt { return lhs.id.uuidString < rhs.id.uuidString }
+            return lhs.createdAt > rhs.createdAt
+        }
     }
 
     public func find(id: UUID) async throws -> PaymentLink? {
