@@ -46,7 +46,24 @@ final class DashboardFlowTests: XCTestCase {
             return false
         }
         app.navigationBars.buttons.element(boundBy: 0).tap()
+        exerciseLocalTransfer(in: app)
         try exercisePaymentLinkSharing(in: app)
+    }
+
+    @MainActor
+    private func exerciseLocalTransfer(in app: XCUIApplication) {
+        tap("Transfer lokal", in: app)
+        for (label, value) in [("Nama penerima demo", "Rani"), ("Bank demo", "Demo"),
+                               ("Nomor rekening demo", "0017"), ("Nominal rupiah", "12500")] {
+            let field = app.textFields[label]
+            field.tap()
+            field.typeText(value)
+        }
+        tap("Tinjau transfer", in: app)
+        XCTAssertTrue(app.staticTexts["0017"].exists)
+        tap("Konfirmasi transfer demo", in: app)
+        XCTAssertTrue(app.staticTexts["Diterima untuk diproses"].waitForExistence(timeout: 15))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
     }
 
     @MainActor
