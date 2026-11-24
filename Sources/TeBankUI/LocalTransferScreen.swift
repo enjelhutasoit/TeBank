@@ -83,6 +83,10 @@ final class LocalTransferModel {
             errorMessage = "Rincian transfer belum dapat dihapus. Coba kembali."
             return
         }
+        returnToEntry()
+    }
+
+    private func returnToEntry() {
         errorMessage = nil
         service = nil
         step = .entry
@@ -114,9 +118,13 @@ final class LocalTransferModel {
     }
 
     func startNew() {
-        guard case let .status(_, status) = step, status != .pending, !busy else { return }
-        edit()
-        guard case .entry = step else { return }
+        guard case let .status(request, status) = step, status != .pending, !busy else { return }
+        do { try checkpoint.archive(request) }
+        catch {
+            errorMessage = "Riwayat transfer belum dapat disimpan. Coba kembali."
+            return
+        }
+        returnToEntry()
         beneficiary = ""
         bank = ""
         account = ""
