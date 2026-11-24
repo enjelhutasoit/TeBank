@@ -1,6 +1,14 @@
 {
-  "originHash" : "535e8bc25b8c083f187f946f4707ce4e27e2e031cb433e1df518f2d7bbd5cde7",
+  "originHash" : "0f35a3df756c1b1666ce7f0a81c461418af0eb29b2cbc0983d815b550bb0aa9a",
   "pins" : [
+    {
+      "identity" : "swifttransferkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/enjelhutasoit/SwiftTransferKit.git",
+      "state" : {
+        "revision" : "006b24895dc1201bdbdba1e2f773d0f5ced873ea"
+      }
+    },
     {
       "identity" : "vanekit",
       "kind" : "remoteSourceControl",
