@@ -1,4 +1,5 @@
 import Foundation
+import TransferPersistence
 import XCTest
 @testable import TeBankCore
 
@@ -46,6 +47,35 @@ final class LocalTransferTests: XCTestCase {
         XCTAssertThrowsError(try store.load()) { error in
             XCTAssertEqual(error as? LocalTransfer.ValidationError, .invalidAmount)
         }
+    }
+
+    func testFreshServiceRecoversBankAcceptanceAfterLostResponse() async throws {
+        let directory = URL.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let journalURL = directory.appendingPathComponent("journal.sqlite")
+        let reviewed = try request()
+        do {
+            let first = try DemoLocalTransferService(request: reviewed, storeURL: journalURL, loseResponse: true)
+            let result = try await first.submit()
+            XCTAssertEqual(result, .pending)
+        }
+
+        let reopened = try DemoLocalTransferService(request: reviewed, storeURL: journalURL, loseResponse: false)
+        let recovered = try await reopened.checkStatus()
+        XCTAssertEqual(recovered, .accepted)
+    }
+
+    func testClientJournalAloneDoesNotConfirmBankAcceptance() async throws {
+        let directory = URL.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let journalURL = directory.appendingPathComponent("journal.sqlite")
+        let reviewed = try request()
+        let journal = try CoreDataTransferJournal(storeURL: journalURL)
+        _ = try await journal.record(reviewed.intent, idempotencyKey: UUID())
+
+        let reopened = try DemoLocalTransferService(request: reviewed, storeURL: journalURL, loseResponse: false)
+        let recovered = try await reopened.checkStatus()
+        XCTAssertEqual(recovered, .pending)
     }
 
     func testLostResponseIsReconciledAfterRepeatedSubmissionOfTheSameIntent() async throws {
