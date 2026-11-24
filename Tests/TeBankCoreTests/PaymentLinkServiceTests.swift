@@ -62,6 +62,30 @@ final class PaymentLinkServiceTests: XCTestCase {
         XCTAssertEqual(link.status(at: deadline), .expired)
     }
 
+    func testLostResponseRetryRecoversTheRecordedPayment() async throws {
+        let instant = now
+        let service = FakePaymentLinkService(loseNextCreateResponse: true, now: { instant })
+        let request = try makeRequest(expiresAt: instant.addingTimeInterval(60))
+        let key = UUID()
+        do {
+            _ = try await service.create(request, idempotencyKey: key)
+            XCTFail("Expected the simulated response loss")
+        } catch let error as PaymentLinkDemoError {
+            XCTAssertEqual(error, .responseLost)
+        }
+
+        let recovered = try await service.create(request, idempotencyKey: key)
+        let paid = try await service.simulatePayment(id: recovered.id)
+        let repeated = try await service.simulatePayment(id: recovered.id)
+        let refreshed = try await service.find(id: recovered.id)
+        let replay = try await service.create(request, idempotencyKey: key)
+        XCTAssertEqual(paid.status(at: request.expiresAt), .paid)
+        XCTAssertEqual(paid.paidAt, instant)
+        XCTAssertEqual(refreshed, paid)
+        XCTAssertEqual(repeated, paid)
+        XCTAssertEqual(replay, paid)
+    }
+
     private func makeRequest(amountRupiah: Int64 = 50_000, expiresAt: Date) throws -> PaymentLinkRequest {
         try PaymentLinkRequest(title: "Pesanan demo", amountRupiah: amountRupiah, expiresAt: expiresAt)
     }
