@@ -2,7 +2,7 @@ import Foundation
 import TransferDomain
 
 /// The recipient and amount are fixed when the user reviews a demo transfer.
-public struct LocalTransfer: Equatable, Sendable, Identifiable {
+public struct LocalTransfer: Equatable, Sendable, Identifiable, Codable {
     public enum ValidationError: Error { case invalidRecipient, invalidAmount }
 
     public let id: UUID
@@ -13,6 +13,25 @@ public struct LocalTransfer: Equatable, Sendable, Identifiable {
     let intent: TransferIntent
 
     public init(beneficiary: String, bank: String, account: String, rupiah: Int64) throws {
+        try self.init(id: UUID(), beneficiary: beneficiary, bank: bank, account: account, rupiah: rupiah)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, beneficiary, bank, account, rupiah
+    }
+
+    public init(from decoder: Decoder) throws {
+        let fields = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            id: fields.decode(UUID.self, forKey: .id),
+            beneficiary: fields.decode(String.self, forKey: .beneficiary),
+            bank: fields.decode(String.self, forKey: .bank),
+            account: fields.decode(String.self, forKey: .account),
+            rupiah: fields.decode(Int64.self, forKey: .rupiah)
+        )
+    }
+
+    private init(id: UUID, beneficiary: String, bank: String, account: String, rupiah: Int64) throws {
         let name = beneficiary.trimmingCharacters(in: .whitespacesAndNewlines)
         let bank = bank.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty, !bank.isEmpty, !account.isEmpty,
@@ -21,7 +40,6 @@ public struct LocalTransfer: Equatable, Sendable, Identifiable {
         }
         let (units, overflow) = rupiah.multipliedReportingOverflow(by: 100)
         guard rupiah > 0, !overflow else { throw ValidationError.invalidAmount }
-        let id = UUID()
         self.id = id
         self.beneficiary = name
         self.bank = bank
