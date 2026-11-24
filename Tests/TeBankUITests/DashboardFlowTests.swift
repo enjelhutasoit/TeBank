@@ -88,17 +88,32 @@ final class DashboardFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Diterima untuk diproses"].waitForExistence(timeout: 15))
         tap("Transfer baru", in: app)
         XCTAssertTrue(app.textFields["Nama penerima demo"].waitForExistence(timeout: 10))
+        enterTransferDetails(in: app, account: "0042")
+        tap("Tinjau transfer", in: app)
+        tap("Konfirmasi transfer demo", in: app)
+        XCTAssertTrue(app.staticTexts["Diterima untuk diproses"].waitForExistence(timeout: 15))
+        tap("Transfer baru", in: app)
         app.navigationBars.buttons.element(boundBy: 0).tap()
         tap("Riwayat transfer", in: app)
-        let archived = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "history.transfer.")).firstMatch
-        XCTAssertTrue(archived.waitForExistence(timeout: 10))
-        let expectedReference = String(archived.identifier.dropFirst("history.transfer.".count))
-        XCTAssertNotNil(UUID(uuidString: expectedReference))
-        archived.tap()
-        XCTAssertTrue(app.staticTexts["Rekening, 0017"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["Referensi, " + expectedReference].exists)
-        XCTAssertTrue(app.staticTexts["Diterima untuk diproses"].waitForExistence(timeout: 15))
-        XCTAssertFalse(app.buttons["Konfirmasi transfer demo"].exists)
+        let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "history.transfer."))
+        XCTAssertTrue(rows.element(boundBy: 1).waitForExistence(timeout: 15))
+        XCTAssertEqual(rows.count, 2)
+        let references = rows.allElementsBoundByIndex.map(\.identifier)
+        XCTAssertEqual(Set(references).count, 2)
+        var accounts = Set<String>()
+        for identifier in references {
+            let expectedReference = String(identifier.dropFirst("history.transfer.".count))
+            XCTAssertNotNil(UUID(uuidString: expectedReference))
+            tap(identifier, in: app)
+            XCTAssertTrue(app.staticTexts["Referensi, " + expectedReference].waitForExistence(timeout: 10))
+            XCTAssertTrue(app.staticTexts["Diterima untuk diproses"].waitForExistence(timeout: 15))
+            for account in ["0017", "0042"] where app.staticTexts["Rekening, " + account].exists {
+                accounts.insert(account)
+            }
+            XCTAssertFalse(app.buttons["Konfirmasi transfer demo"].exists)
+            app.navigationBars.buttons.element(boundBy: 0).tap()
+        }
+        XCTAssertEqual(accounts, Set(["0017", "0042"]))
     }
 
     @MainActor
@@ -133,9 +148,9 @@ final class DashboardFlowTests: XCTestCase {
     }
 
     @MainActor
-    private func enterTransferDetails(in app: XCUIApplication) {
+    private func enterTransferDetails(in app: XCUIApplication, account: String = "0017") {
         for (label, value) in [("Nama penerima demo", "Rani"), ("Bank demo", "Demo"),
-                               ("Nomor rekening demo", "0017"), ("Nominal rupiah", "12500")] {
+                               ("Nomor rekening demo", account), ("Nominal rupiah", "12500")] {
             let field = app.textFields[label]
             field.tap()
             field.typeText(value)
