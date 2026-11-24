@@ -51,7 +51,7 @@ struct BusinessDashboard: View {
                 NavigationLink("Transfer lokal") { LocalTransferScreen(model: transfers) }
                     .buttonStyle(.bordered)
 
-                NavigationLink("Riwayat transfer") { TransferHistoryView(store: transfers.checkpoint) }
+                NavigationLink("Riwayat transfer") { TransferHistoryView(model: transfers) }
                     .buttonStyle(.bordered)
 
                 Text("Aktivitas terbaru").font(.headline).accessibilityAddTraits(.isHeader)
@@ -117,7 +117,7 @@ func rupiah(_ amount: Int64) -> String {
 }
 
 private struct TransferHistoryView: View {
-    let store: LocalTransferCheckpointStore
+    let model: LocalTransferModel
     @State private var transfers: [LocalTransfer]?
     @State private var failed = false
 
@@ -133,12 +133,17 @@ private struct TransferHistoryView: View {
                     Text("Belum ada transfer yang diarsipkan.")
                 } else {
                     List(transfers) { transfer in
-                        VStack(alignment: .leading) {
-                            Text(transfer.beneficiary).font(.headline)
-                            Text("\(transfer.bank) · \(transfer.account)")
-                            Text(rupiah(transfer.rupiah))
+                        NavigationLink {
+                            ArchivedTransferDetail(transfer: transfer, lookup: model.archivedStatus(for:))
+                        } label: {
+                            VStack(alignment: .leading) {
+                                Text(transfer.beneficiary).font(.headline)
+                                Text("\(transfer.bank) · \(transfer.account)")
+                                Text(rupiah(transfer.rupiah))
+                            }
+                            .accessibilityElement(children: .combine)
                         }
-                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("history.transfer.\(transfer.id.uuidString)")
                     }
                 }
             } else {
@@ -153,10 +158,58 @@ private struct TransferHistoryView: View {
     private func load() async {
         failed = false
         do {
-            let store = self.store
+            let store = model.checkpoint
             transfers = try await Task.detached { try store.archivedTransfers() }.value
         } catch {
             failed = true
         }
+    }
+}
+
+private struct ArchivedTransferDetail: View {
+    let transfer: LocalTransfer
+    let lookup: @MainActor (LocalTransfer) async throws -> LocalTransferStatus
+
+    private enum Phase {
+        case loading, loaded(LocalTransferStatus), unavailable
+    }
+
+    @State private var phase = Phase.loading
+    @State private var attempt = 0
+
+    var body: some View {
+        Form {
+            TransferSummary(request: transfer)
+            LabeledContent("Referensi", value: transfer.id.uuidString)
+            Section("Status transfer") {
+                switch phase {
+                case .loading:
+                    ProgressView("Memeriksa status")
+                case let .loaded(status):
+                    TransferStatusLabel(status: status)
+                case .unavailable:
+                    Text("Status belum dapat diperiksa.")
+                }
+                Button("Periksa status transfer") {
+                    phase = .loading
+                    attempt += 1
+                }
+                .disabled(isLoading)
+            }
+        }
+        .navigationTitle("Detail transfer")
+        .task(id: attempt) {
+            do {
+                let status = try await lookup(transfer)
+                if !Task.isCancelled { phase = .loaded(status) }
+            } catch {
+                if !Task.isCancelled { phase = .unavailable }
+            }
+        }
+    }
+
+    private var isLoading: Bool {
+        if case .loading = phase { return true }
+        return false
     }
 }
