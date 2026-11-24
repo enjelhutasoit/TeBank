@@ -8,7 +8,9 @@ final class OnboardingDemo {
     private static var storageDirectory: URL {
         #if DEBUG && targetEnvironment(simulator)
         if ProcessInfo.processInfo.arguments.contains("--dashboard-ui-test") {
-            return URL.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            let testID = ProcessInfo.processInfo.environment["TEBANK_UI_TEST_STORE"]
+                .flatMap { UUID(uuidString: $0) } ?? UUID()
+            return URL.temporaryDirectory.appendingPathComponent(testID.uuidString)
         }
         #endif
         return URL.applicationSupportDirectory.appendingPathComponent("TeBankDemo")
