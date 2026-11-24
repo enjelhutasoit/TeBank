@@ -26,28 +26,6 @@ public struct LocalTransferCheckpointStore: Sendable {
         try FileManager.default.moveItem(at: file, to: destination)
     }
 
-    public func archivedTransfers() throws -> [LocalTransfer] {
-        let history = file.deletingLastPathComponent().appendingPathComponent("history", isDirectory: true)
-        let files: [URL]
-        do {
-            files = try FileManager.default.contentsOfDirectory(at: history, includingPropertiesForKeys: nil)
-        } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
-            return []
-        }
-        let decoder = JSONDecoder()
-        let transfers = try files.filter { $0.pathExtension == "json" }.map { url in
-            let transfer = try decoder.decode(LocalTransfer.self, from: Data(contentsOf: url))
-            guard url.deletingPathExtension().lastPathComponent == transfer.id.uuidString else {
-                throw ArchiveError.checkpointMismatch
-            }
-            return transfer
-        }
-        return transfers.sorted {
-            if $0.beneficiary != $1.beneficiary { return $0.beneficiary < $1.beneficiary }
-            return $0.id.uuidString < $1.id.uuidString
-        }
-    }
-
     public enum ArchiveError: Error {
         case checkpointMismatch
     }

@@ -13,15 +13,15 @@ final class LocalTransferTests: XCTestCase {
         let directory = URL.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
         let store = LocalTransferCheckpointStore(directory: directory)
-        XCTAssertTrue(try store.archivedTransfers().isEmpty)
         let transfers = [try request(), try request()]
         for transfer in transfers {
             try store.save(transfer)
             try store.archive(transfer)
             XCTAssertNil(try store.load())
         }
-        let archived = try store.archivedTransfers()
-        XCTAssertEqual(archived.map(\.id), transfers.map(\.id).sorted { $0.uuidString < $1.uuidString })
+        let history = directory.appendingPathComponent("history")
+        let files = try FileManager.default.contentsOfDirectory(at: history, includingPropertiesForKeys: nil)
+        let archived = try files.map { try JSONDecoder().decode(LocalTransfer.self, from: Data(contentsOf: $0)) }
         XCTAssertEqual(archived.count, 2)
         for transfer in transfers { XCTAssertTrue(archived.contains(transfer)) }
     }
