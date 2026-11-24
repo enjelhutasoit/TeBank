@@ -72,13 +72,20 @@ jobs:
 
       - name: Test Swift package
         if: steps.scope.outputs.full == 'true'
-        run: xcrun swift test --disable-automatic-resolution -Xswiftc -warnings-as-errors
+        shell: bash
+        run: |
+          set -euo pipefail
+          started_at=$SECONDS
+          trap 'printf "SwiftPM build and tests: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
+          xcrun swift test --disable-automatic-resolution -Xswiftc -warnings-as-errors
 
       - name: Build the iOS shell
         if: steps.scope.outputs.full == 'true' && steps.scope.outputs.smoke != 'true'
         shell: bash
         run: |
           set -euo pipefail
+          started_at=$SECONDS
+          trap 'printf "iOS build: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
           # Use the preinstalled iOS SDK from the runner's default Xcode.
           unset DEVELOPER_DIR
           xcodebuild -version
@@ -86,11 +93,14 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/TeBankBuild" CODE_SIGNING_ALLOWED=NO build
 
-      - name: Test onboarding approval and dashboard on iOS
+      - name: Select and prepare simulator
+        id: simulator
         if: steps.scope.outputs.smoke == 'true'
         shell: bash
         run: |
           set -euo pipefail
+          started_at=$SECONDS
+          trap 'printf "Simulator selection and boot: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
           # Use the runner Xcode that owns the installed simulator runtime.
           unset DEVELOPER_DIR
           xcodebuild -version
@@ -105,11 +115,25 @@ jobs:
               sys.exit(f"No preinstalled iPhone simulator for iOS {sys.argv[1]}")
           print(device["udid"])' "$sdk_version" <<< "$devices")
           xcrun simctl bootstatus "$device_id" -b
-          xcodebuild -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
+          echo "device_id=$device_id" >> "$GITHUB_OUTPUT"
+          echo "architecture=$architecture" >> "$GITHUB_OUTPUT"
+
+      - name: Test onboarding approval and dashboard on iOS
+        if: steps.scope.outputs.smoke == 'true'
+        shell: bash
+        env:
+          SIMULATOR_ID: ${{ steps.simulator.outputs.device_id }}
+          SIMULATOR_ARCH: ${{ steps.simulator.outputs.architecture }}
+        run: |
+          set -euo pipefail
+          started_at=$SECONDS
+          trap 'printf "Simulator build and tests: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
+          unset DEVELOPER_DIR
+          xcodebuild -showBuildTimingSummary -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
             -resultBundlePath "$RUNNER_TEMP/dashboard.xcresult" \
-            -destination "platform=iOS Simulator,id=$device_id,arch=$architecture" \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID,arch=$SIMULATOR_ARCH" \
             -derivedDataPath "$RUNNER_TEMP/TeBankUITests" -parallel-testing-enabled NO \
-            ARCHS="$architecture" CODE_SIGNING_ALLOWED=NO test
+            ARCHS="$SIMULATOR_ARCH" CODE_SIGNING_ALLOWED=NO test
 
       - name: Preserve failed dashboard UI test evidence
         if: failure() && steps.scope.outputs.smoke == 'true'
