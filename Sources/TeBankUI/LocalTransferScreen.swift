@@ -5,6 +5,7 @@ import TeBankCore
 @MainActor @Observable
 final class LocalTransferModel {
     enum Step {
+        case restoring
         case entry
         case review(LocalTransfer)
         case status(LocalTransfer, LocalTransferStatus)
@@ -15,13 +16,50 @@ final class LocalTransferModel {
     var account = ""
     var amount = ""
     var loseResponse = false
-    private(set) var step = Step.entry
+    private(set) var step = Step.restoring
     private(set) var busy = false
     private(set) var errorMessage: String?
     private var service: (any LocalTransferService)?
     private let directory: URL
 
     init(directory: URL) { self.directory = directory }
+
+    private var checkpoint: LocalTransferCheckpointStore {
+        LocalTransferCheckpointStore(directory: directory)
+    }
+
+    private func openService(for request: LocalTransfer, loseResponse: Bool) async throws -> DemoLocalTransferService {
+        let path = directory.appendingPathComponent("transfers.sqlite")
+        return try await Task.detached {
+            try DemoLocalTransferService(request: request, storeURL: path, loseResponse: loseResponse)
+        }.value
+    }
+
+    func restore() async {
+        guard case .restoring = step, !busy else { return }
+        busy = true
+        defer { busy = false }
+        errorMessage = nil
+        do {
+            guard let request = try checkpoint.load() else {
+                step = .entry
+                return
+            }
+            let reopened = try await openService(for: request, loseResponse: false)
+            if let status = try await reopened.restoredStatus() {
+                service = reopened
+                step = .status(request, status)
+            } else {
+                beneficiary = request.beneficiary
+                bank = request.bank
+                account = request.account
+                amount = String(request.rupiah)
+                step = .review(request)
+            }
+        } catch {
+            errorMessage = "Transfer belum dapat dipulihkan. Coba kembali."
+        }
+    }
 
     func review() {
         errorMessage = nil
@@ -40,6 +78,11 @@ final class LocalTransferModel {
 
     func edit() {
         guard !busy else { return }
+        do { try checkpoint.clear() }
+        catch {
+            errorMessage = "Rincian transfer belum dapat dihapus. Coba kembali."
+            return
+        }
         errorMessage = nil
         service = nil
         step = .entry
@@ -51,17 +94,13 @@ final class LocalTransferModel {
         defer { busy = false }
         errorMessage = nil
         do {
-            if service == nil {
-                let path = directory.appendingPathComponent("transfers.sqlite")
-                service = try await Task.detached {
-                    [loseResponse] in
-                    try DemoLocalTransferService(request: request, storeURL: path, loseResponse: loseResponse)
-                }.value
-            }
-            guard let service else { return }
+            try checkpoint.save(request)
+            let service = try await openService(for: request, loseResponse: loseResponse)
+            self.service = service
             step = .status(request, try await service.submit())
         } catch {
-            errorMessage = "Pengiriman belum dapat diproses. Coba kembali."
+            step = .restoring
+            errorMessage = "Pengiriman belum dapat diproses. Periksa transfer sebelum mencoba kembali."
         }
     }
 
@@ -77,6 +116,7 @@ final class LocalTransferModel {
     func startNew() {
         guard case let .status(_, status) = step, status != .pending, !busy else { return }
         edit()
+        guard case .entry = step else { return }
         beneficiary = ""
         bank = ""
         account = ""
@@ -91,6 +131,10 @@ struct LocalTransferScreen: View {
     var body: some View {
         Form {
             switch model.step {
+            case .restoring:
+                if model.errorMessage != nil {
+                    Button("Coba pulihkan transfer") { Task { await model.restore() } }
+                }
             case .entry:
                 Section("Penerima sintetis") {
                     TextField("Nama penerima demo", text: $model.beneficiary)
@@ -124,6 +168,7 @@ struct LocalTransferScreen: View {
         }
         .disabled(model.busy)
         .navigationTitle("Transfer lokal")
+        .task { await model.restore() }
     }
 
     private func summary(_ request: LocalTransfer) -> some View {
