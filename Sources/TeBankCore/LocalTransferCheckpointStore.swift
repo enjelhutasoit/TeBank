@@ -17,6 +17,14 @@ public struct LocalTransferCheckpointStore: Sendable {
         try data.write(to: file, options: .atomic)
     }
 
+    public func clear() throws {
+        do {
+            try FileManager.default.removeItem(at: file)
+        } catch let error as CocoaError where error.code == .fileNoSuchFile {
+            return
+        }
+    }
+
     public func load() throws -> LocalTransfer? {
         do {
             let data = try Data(contentsOf: file)
