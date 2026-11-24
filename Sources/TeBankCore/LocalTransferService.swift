@@ -43,6 +43,15 @@ public struct DemoLocalTransferService: LocalTransferService {
         LocalTransferStatus(try await coordinator.submit(request.intent))
     }
 
+    /// A missing journal entry means submission never reached the gateway.
+    public func restoredStatus() async throws -> LocalTransferStatus? {
+        do {
+            return try await checkStatus()
+        } catch TransferReconciliationService.Failure.intentNotFound {
+            return nil
+        }
+    }
+
     public func checkStatus() async throws -> LocalTransferStatus {
         switch try await reconciliation.reconcile(intentID: request.id) {
         case let .confirmed(state, _): LocalTransferStatus(state)
