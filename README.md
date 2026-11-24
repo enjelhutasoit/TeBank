@@ -1,68 +1,81 @@
 # TeBank
 
-TeBank is an independent, unofficial iOS prototype for demonstrating business banking workflows with synthetic data.
+An independent iOS business banking prototype demonstrating recoverable financial workflows, reusable Swift SDK integration and accessible SwiftUI interfaces with synthetic data.
 
-## Prototype scope
+**Swift 6 · SwiftUI + UIKit · iOS 17+ · Xcode 16.2 · Swift Package Manager**
 
-- A SwiftUI shell with a home screen and an About screen.
-- Light and dark TeBank palettes mapped to VaneKit.
-- An opaque privacy cover applied when an iOS scene leaves the active state.
-- Device-authenticated sessions with passcode fallback.
-- Synthetic business onboarding with local checkpoint recovery and configurable failure scenarios.
+## What you can explore
 
-TeBank does not open bank accounts or collect identity photos. The onboarding sequence is an independent demo design.
+| Workflow | Engineering focus |
+| --- | --- |
+| Device-authenticated session | BiometricSession integration, passcode fallback, scene privacy cover and relock |
+| Business onboarding | Explicit consent, synthetic samples, persisted request identity and simulated authority decisions |
+| Business dashboard | Synthetic balance, transaction details, accessible labels and light/dark design tokens |
+| Payment links | Creation, sharing, expiry, simulated payment and idempotent retry |
+| Local transfers | Review, validation, durable submission identity, lost-response reconciliation and relaunch recovery |
+| Transfer history | Archived reviewed details and read-only status lookup using the original intent |
+
+TeBank is an unofficial demo. All balances, identities, transactions and bank responses are synthetic. It does not open accounts, collect identity photos or move money.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    App["App: UIKit scene and session"] --> UI["TeBankUI: SwiftUI screens"]
+    App --> Bio["BiometricSession"]
+    UI --> Vane["VaneKit"]
+    UI --> Core["TeBankCore: domain and services"]
+    Core --> Transfer["SwiftTransferKit"]
+    Core --> Local["Client checkpoints and history"]
+    Core --> Authority["Demo authority and bank receipt"]
+    Transfer --> Journal["Durable transfer journal"]
+```
+
+- [TeBankCore](Sources/TeBankCore) owns onboarding state, synthetic ledger, payment links, transfer validation and service adapters.
+- [TeBankUI](Sources/TeBankUI) owns observable screen models, navigation, and VaneKit theme integration.
+- [App](App) hosts SwiftUI in UIKit and owns window lifecycle, authentication and privacy shielding.
+
+The app integrates [BiometricSession](https://github.com/enjelhutasoit/biometric-session-sdk), [VaneKit](https://github.com/enjelhutasoit/VaneKit) and [SwiftTransferKit](https://github.com/enjelhutasoit/SwiftTransferKit). The [package manifest](Package.swift) and [workspace lockfile](TeBank.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved) record the dependency configuration.
+
+Read the [transfer recovery ADR](docs/adr/001-transfer-recovery.md) and [onboarding persistence design](docs/onboarding-persistence.md) for ownership, failure handling and trade-offs.
 
 ## Run locally
 
-Use Xcode 16.2 and Swift 6.0.3. The app targets iOS 17 or later. The package supports macOS 14 or later for local tests.
+1. Install Xcode 16.2 (build `16C5032a`) and an eligible iOS simulator.
+2. Open `TeBank.xcodeproj`, select the shared `TeBank` scheme and an installed iPhone simulator.
+3. Run the app, select **Buka TeBank**, and authenticate using the simulator's enrolled biometric or device passcode.
 
-1. Open `TeBank.xcodeproj` in Xcode.
-2. Select the shared `TeBank` scheme and an installed iPhone simulator.
-3. Run the app and select **Buka TeBank**. Use device authentication or an enrolled simulator biometric.
-4. Open **Pendaftaran bisnis**, give demo consent, and select the synthetic samples.
-5. In **Lab simulasi**, select **Respons hilang setelah diterima**, return, and submit. Terminate the app after the missing-response message. Relaunch, unlock, and reopen onboarding. The original request should show **Menunggu tinjauan**.
-6. For the sample-replacement demo, start a new request in the lab, select **Minta penggantian sampel**, and submit the new draft. Replace the synthetic samples to return to pending review.
+The package uses Swift 6.0.3 with Xcode 16.2 and targets iOS 17+ and macOS 14+.
 
-7. In the lab, select **Setujui pengajuan demo** once the request is pending. Return to onboarding, open **Buka dashboard**, and select a transaction to see its synthetic detail.
+## Demo
 
-From the repository root, run the package tests with Xcode 16.2 selected:
+Follow the [guided demo](docs/demo.md) to approve a synthetic business, inspect the dashboard, share a payment link, and recover a transfer after terminating the app.
 
-```bash
-xcrun swift test --disable-automatic-resolution -Xswiftc -warnings-as-errors
-```
+## Verification
 
-The unit tests cover theme contrast, checkpoint storage, the simulated authority, and onboarding recovery. To check the privacy cover, open the About screen, enter the iOS app switcher, and inspect the TeBank preview for hidden content. Reopen TeBank and confirm that device authentication is required again. Repeat in light and dark appearance.
-
-## Slice A verification
-
-On the Intel Mac, select Xcode 16.2 (build `16C5032a`) and make sure the shared `TeBank` scheme has an eligible iPhone simulator already installed. From the repository root, run:
+From the repository root with Xcode 16.2 selected:
 
 ```bash
 git rev-parse HEAD
 ./verify.sh
 ```
 
-Record the tested commit, simulator and result. The script runs the SwiftPM tests and the approval-to-transaction-detail UI test, including the dashboard and detail accessibility audits.
+For package tests alone:
 
-[CI run #44](https://github.com/enjelhutasoit/TeBank/actions/runs/45108475355) passed 19 SwiftPM tests with Xcode 16.2 and the iOS simulator UI test with Xcode 16.4. The maintainer reported that the app launched from Xcode 16.2 on an Intel Mac and that `./verify.sh` ended with `** TEST SUCCEEDED **` in the same local checkout. [CI #56](https://github.com/enjelhutasoit/TeBank/actions/runs/45180297909) passed the package and simulator UI tests with the dashboard transaction label checks. The v0.5.0 verification scope is the simulator. The manual accessibility audit and Instruments profiling on physical iPhone hardware are deferred. The simulator demo recording was reviewed. See the [Slice A walkthrough and verification record](docs/slice-a-demo.md).
+```bash
+xcrun swift test --disable-automatic-resolution -Xswiftc -warnings-as-errors
+```
 
-## Module boundaries
+Hosted [CI](.github/workflows/ci.yml) determines verification scope on Linux and schedules independent package and iOS jobs on macOS 15. Package tests use Xcode 16.2, iOS verification uses Xcode 16.4. Markdown-only changes skip both macOS jobs. Core-only PRs run package tests and build the iOS shell, while full verification includes simulator UI tests.
 
-- `TeBankCore` owns color math, synthetic onboarding state, persistence, and the simulated authority.
-- `TeBankUI` owns SwiftUI navigation and the VaneKit theme adapter.
-- `App` hosts the shell and manages each window's privacy cover through the UIKit scene lifecycle.
+- [Package tests](Tests/TeBankCoreTests) cover persistence, onboarding, payment links, transfer recovery, history, ledger and color contrast.
+- [UI tests](Tests/TeBankUITests) cover approval, dashboard accessibility audits, payment sharing, transfer validation, reconciliation, history and relaunch recovery.
+- [Release evidence](docs/releases) tracks verified milestones. The final v1.0 verification remains a separate release gate.
 
-## Payment link walkthrough
+## Limitations
 
-1. From the approved dashboard, open **Buat link pembayaran**. Enter a title, a whole-rupiah amount and a future expiry, then tap **Buat link**.
-2. Tap **Bagikan link demo** to open the system share sheet. Dismiss it to return to the detail screen.
-3. Tap **Simulasikan pembayaran**, then **Periksa status**. The status should read **Dibayar**. Return to the dashboard and open the same link to inspect it again.
-4. To see expiry, create another link with a near-future deadline and leave it unpaid. Its detail screen should show **Kedaluwarsa** at the deadline.
+Payment links live in memory for the current app process and use synthetic URLs under `pay.tebank.invalid`. Local transfer checkpoints and journals persist across relaunch. Simulated bank acceptance represents acceptance for processing, and the dashboard balance stays synthetic. Recipient routing, real settlement, fees and bank-specific limits are outside the demo. Manual physical-device accessibility and performance profiling remain pending.
 
-The actor keeps links for the current app process. Relaunching clears them. Sharing uses a synthetic URL under `pay.tebank.invalid`. The demo records a simulated settlement locally. No money moves. The package tests inject a lost creation response and retry with the original key.
+## License
 
-## Local transfer walkthrough
-
-From the approved dashboard, open **Transfer lokal**. Enter a synthetic name, bank, account number and whole-rupiah amount. Enable **Simulasikan respons hilang**, tap **Tinjau transfer**, inspect the recipient and amount, then tap **Konfirmasi transfer demo**. After **Hasil belum diketahui**, tap **Periksa status transfer**. The simulated bank should report **Diterima untuk diproses**.
-
-The SDK journals the amount, intent ID and idempotency key before submission. The recipient belongs to the immutable app-side review. The SDK simulator accepts an amount and intent ID and does not route funds to an account. Its acceptance state is distinct from settlement. Dashboard balances stay synthetic. Fee schedules, bank-specific account rules and transfer limits are outside this demo. To exercise relaunch recovery, terminate the app after **Hasil belum diketahui**, reopen it, unlock, and select **Transfer lokal** on the approved dashboard. The screen restores the reviewed recipient and looks up the bank receipt using the original journal entry. A matching receipt shows **Diterima untuk diproses**. A review saved before the journal write requires explicit confirmation again.
+[MIT](LICENSE)
