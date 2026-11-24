@@ -17,6 +17,19 @@ public struct LocalTransferCheckpointStore: Sendable {
         try data.write(to: file, options: .atomic)
     }
 
+    /// Retires the active checkpoint into history in the same storage directory.
+    public func archive(_ reviewed: LocalTransfer) throws {
+        guard try load() == reviewed else { throw ArchiveError.checkpointMismatch }
+        let history = file.deletingLastPathComponent().appendingPathComponent("history", isDirectory: true)
+        try FileManager.default.createDirectory(at: history, withIntermediateDirectories: true)
+        let destination = history.appendingPathComponent(reviewed.id.uuidString).appendingPathExtension("json")
+        try FileManager.default.moveItem(at: file, to: destination)
+    }
+
+    public enum ArchiveError: Error {
+        case checkpointMismatch
+    }
+
     public func clear() throws {
         do {
             try FileManager.default.removeItem(at: file)
