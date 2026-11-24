@@ -4,7 +4,9 @@ import VaneKit
 
 struct BusinessDashboard: View {
     let ledger: DemoLedger
-    let paymentLinks: any PaymentLinkService
+    let paymentLinks: any PaymentLinkDemoService
+
+    @State private var links: [PaymentLink] = []
 
     @Environment(\.vaneTheme) private var theme
     @Environment(\.colorScheme) private var scheme
@@ -34,6 +36,17 @@ struct BusinessDashboard: View {
                 }
                 .buttonStyle(.bordered)
 
+                ForEach(links) { link in
+                    NavigationLink {
+                        PaymentLinkDetailView(link: link, service: paymentLinks)
+                    } label: {
+                        VStack(alignment: .leading) {
+                            Text(link.request.title)
+                            Text(rupiah(link.request.amountRupiah)).font(.subheadline)
+                        }
+                    }
+                }
+
                 Text("Aktivitas terbaru").font(.headline).accessibilityAddTraits(.isHeader)
                 ForEach(ledger.entries) { entry in
                     NavigationLink {
@@ -56,6 +69,7 @@ struct BusinessDashboard: View {
             .padding()
         }
         .background(theme.color(.background, for: scheme))
+        .task { links = await paymentLinks.allLinks() }
         .navigationTitle("Dashboard bisnis")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)

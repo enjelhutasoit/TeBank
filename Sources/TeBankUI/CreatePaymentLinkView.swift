@@ -2,7 +2,7 @@ import SwiftUI
 import TeBankCore
 
 struct CreatePaymentLinkView: View {
-    let service: any PaymentLinkService
+    let service: any PaymentLinkDemoService
 
     @State private var title = ""
     @State private var amount = ""
@@ -44,7 +44,7 @@ struct CreatePaymentLinkView: View {
         }
         .navigationTitle("Buat link pembayaran")
         .sheet(item: $createdLink) { link in
-            NavigationStack { PaymentLinkDetailView(link: link) }
+            NavigationStack { PaymentLinkDetailView(link: link, service: service) }
         }
     }
 
