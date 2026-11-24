@@ -14,12 +14,14 @@ final class OnboardingDemo {
         return URL.applicationSupportDirectory.appendingPathComponent("TeBankDemo")
     }
     let model: OnboardingModel
+    let transfers: LocalTransferModel
     let paymentLinks = FakePaymentLinkService()
     private let authority: FakeOnboardingAuthority
     private(set) var scenario: FakeOnboardingAuthority.Scenario = .normal
     private(set) var changingScenario = false
 
     init(directory: URL) {
+        transfers = LocalTransferModel(directory: URL.temporaryDirectory.appendingPathComponent(UUID().uuidString))
         authority = FakeOnboardingAuthority(directory: directory.appendingPathComponent("authority"))
         model = OnboardingModel(
             store: FileCheckpointStore(url: directory.appendingPathComponent("checkpoint.json")),
@@ -88,7 +90,7 @@ struct OnboardingScreen: View {
                     }
                     if status == .approved {
                         NavigationLink("Buka dashboard") {
-                            BusinessDashboard(ledger: .sample, paymentLinks: demo.paymentLinks)
+                            BusinessDashboard(transfers: demo.transfers, ledger: .sample, paymentLinks: demo.paymentLinks)
                         }
                     }
                     refreshButton
