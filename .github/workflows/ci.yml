@@ -70,6 +70,34 @@ jobs:
 
           xcrun swift --version
 
+      - name: Start simulator boot
+        id: simulator
+        if: steps.scope.outputs.smoke == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          started_at=$SECONDS
+          trap 'printf "Simulator selection and boot request: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
+          # Use the runner Xcode that owns the installed simulator runtime.
+          unset DEVELOPER_DIR
+          xcodebuild -version
+          sdk_version=$(xcrun --sdk iphonesimulator --show-sdk-version)
+          architecture=$(uname -m)
+          devices=$(xcrun simctl list devices available -j)
+          selection=$(python3 -c 'import json, sys
+          runtime = "com.apple.CoreSimulator.SimRuntime.iOS-" + sys.argv[1].replace(".", "-")
+          devices = json.load(sys.stdin)["devices"].get(runtime, [])
+          device = next((item for item in devices if item["name"].startswith("iPhone")), None)
+          if device is None:
+              sys.exit(f"No preinstalled iPhone simulator for iOS {sys.argv[1]}")
+          print(device["udid"], device["state"])' "$sdk_version" <<< "$devices")
+          read -r device_id state <<< "$selection"
+          if [[ "$state" == "Shutdown" ]]; then
+            xcrun simctl boot "$device_id"
+          fi
+          echo "device_id=$device_id" >> "$GITHUB_OUTPUT"
+          echo "architecture=$architecture" >> "$GITHUB_OUTPUT"
+
       - name: Test Swift package
         if: steps.scope.outputs.full == 'true'
         shell: bash
@@ -93,30 +121,17 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/TeBankBuild" CODE_SIGNING_ALLOWED=NO build
 
-      - name: Select and prepare simulator
-        id: simulator
+      - name: Wait for simulator readiness
         if: steps.scope.outputs.smoke == 'true'
         shell: bash
+        env:
+          SIMULATOR_ID: ${{ steps.simulator.outputs.device_id }}
         run: |
           set -euo pipefail
-          started_at=$SECONDS
-          trap 'printf "Simulator selection and boot: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
-          # Use the runner Xcode that owns the installed simulator runtime.
           unset DEVELOPER_DIR
-          xcodebuild -version
-          sdk_version=$(xcrun --sdk iphonesimulator --show-sdk-version)
-          architecture=$(uname -m)
-          devices=$(xcrun simctl list devices available -j)
-          device_id=$(python3 -c 'import json, sys
-          runtime = "com.apple.CoreSimulator.SimRuntime.iOS-" + sys.argv[1].replace(".", "-")
-          devices = json.load(sys.stdin)["devices"].get(runtime, [])
-          device = next((item for item in devices if item["name"].startswith("iPhone")), None)
-          if device is None:
-              sys.exit(f"No preinstalled iPhone simulator for iOS {sys.argv[1]}")
-          print(device["udid"])' "$sdk_version" <<< "$devices")
-          xcrun simctl bootstatus "$device_id" -b
-          echo "device_id=$device_id" >> "$GITHUB_OUTPUT"
-          echo "architecture=$architecture" >> "$GITHUB_OUTPUT"
+          started_at=$SECONDS
+          trap 'printf "Remaining simulator boot wait: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
+          xcrun simctl bootstatus "$SIMULATOR_ID" -b
 
       - name: Test onboarding approval and dashboard on iOS
         if: steps.scope.outputs.smoke == 'true'
