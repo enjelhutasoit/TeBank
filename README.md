@@ -60,3 +60,9 @@ Record the tested commit, simulator and result. The script runs the SwiftPM test
 4. To see expiry, create another link with a near-future deadline and leave it unpaid. Its detail screen should show **Kedaluwarsa** at the deadline.
 
 The actor keeps links for the current app process. Relaunching clears them. Sharing uses a synthetic URL under `pay.tebank.invalid`. The demo records a simulated settlement locally. No money moves. The package tests inject a lost creation response and retry with the original key.
+
+## Local transfer walkthrough
+
+From the approved dashboard, open **Transfer lokal**. Enter a synthetic name, bank, account number and whole-rupiah amount. Enable **Simulasikan respons hilang**, tap **Tinjau transfer**, inspect the recipient and amount, then tap **Konfirmasi transfer demo**. After **Hasil belum diketahui**, tap **Periksa status transfer**. The simulated bank should report **Diterima untuk diproses**.
+
+The SDK journals the amount, intent ID and idempotency key before submission. The recipient belongs to the immutable app-side review. The SDK simulator accepts an amount and intent ID and does not route funds to an account. Its acceptance state is distinct from settlement. Dashboard balances stay synthetic. Fee schedules, bank-specific account rules and transfer limits are outside this demo. The current transfer survives navigation in the same process. Restarting the app clears the simulated bank and opens a new temporary journal.
