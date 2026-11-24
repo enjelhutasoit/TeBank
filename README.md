@@ -51,3 +51,12 @@ Record the tested commit, simulator and result. The script runs the SwiftPM test
 - `TeBankCore` owns color math, synthetic onboarding state, persistence, and the simulated authority.
 - `TeBankUI` owns SwiftUI navigation and the VaneKit theme adapter.
 - `App` hosts the shell and manages each window's privacy cover through the UIKit scene lifecycle.
+
+## Payment link walkthrough
+
+1. From the approved dashboard, open **Buat link pembayaran**. Enter a title, a whole-rupiah amount and a future expiry, then tap **Buat link**.
+2. Tap **Bagikan link demo** to open the system share sheet. Dismiss it to return to the detail screen.
+3. Tap **Simulasikan pembayaran**, then **Periksa status**. The status should read **Dibayar**. Return to the dashboard and open the same link to inspect it again.
+4. To see expiry, create another link with a near-future deadline and leave it unpaid. Its detail screen should show **Kedaluwarsa** at the deadline.
+
+The actor keeps links for the current app process. Relaunching clears them. Sharing uses a synthetic URL under `pay.tebank.invalid`. The demo records a simulated settlement locally. No money moves. The package tests inject a lost creation response and retry with the original key.
