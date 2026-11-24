@@ -14,13 +14,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  package-tests:
-    name: SwiftPM tests (Xcode 16.2)
-    runs-on: macos-15-intel
-    timeout-minutes: 45
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
-
+  scope:
+    name: Determine verification scope
+    runs-on: ubuntu-latest
+    outputs:
+      full: ${{ steps.scope.outputs.full }}
+      smoke: ${{ steps.scope.outputs.smoke }}
     steps:
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -52,8 +51,21 @@ jobs:
           echo "smoke=$smoke" >> "$GITHUB_OUTPUT"
           echo "Package tests and iOS build: $full. Simulator UI test: $smoke." >> "$GITHUB_STEP_SUMMARY"
 
+  package-tests:
+    name: Run Swift package tests
+    needs: scope
+    if: needs.scope.outputs.full == 'true'
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
       - name: Verify pinned toolchain
-        if: steps.scope.outputs.full == 'true'
         shell: bash
         run: |
           if [[ ! -d "$DEVELOPER_DIR" ]]; then
@@ -70,36 +82,7 @@ jobs:
 
           xcrun swift --version
 
-      - name: Start simulator boot
-        id: simulator
-        if: steps.scope.outputs.smoke == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          started_at=$SECONDS
-          trap 'printf "Simulator selection and boot request: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
-          # Use the runner Xcode that owns the installed simulator runtime.
-          unset DEVELOPER_DIR
-          xcodebuild -version
-          sdk_version=$(xcrun --sdk iphonesimulator --show-sdk-version)
-          architecture=$(uname -m)
-          devices=$(xcrun simctl list devices available -j)
-          selection=$(python3 -c 'import json, sys
-          runtime = "com.apple.CoreSimulator.SimRuntime.iOS-" + sys.argv[1].replace(".", "-")
-          devices = json.load(sys.stdin)["devices"].get(runtime, [])
-          device = next((item for item in devices if item["name"].startswith("iPhone")), None)
-          if device is None:
-              sys.exit(f"No preinstalled iPhone simulator for iOS {sys.argv[1]}")
-          print(device["udid"], device["state"])' "$sdk_version" <<< "$devices")
-          read -r device_id state <<< "$selection"
-          if [[ "$state" == "Shutdown" ]]; then
-            xcrun simctl boot "$device_id"
-          fi
-          echo "device_id=$device_id" >> "$GITHUB_OUTPUT"
-          echo "architecture=$architecture" >> "$GITHUB_OUTPUT"
-
       - name: Test Swift package
-        if: steps.scope.outputs.full == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -107,34 +90,57 @@ jobs:
           trap 'printf "SwiftPM build and tests: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
           xcrun swift test --disable-automatic-resolution -Xswiftc -warnings-as-errors
 
+  ios:
+    name: Verify iOS app
+    needs: scope
+    if: needs.scope.outputs.full == 'true'
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
       - name: Build the iOS shell
-        if: steps.scope.outputs.full == 'true' && steps.scope.outputs.smoke != 'true'
+        if: needs.scope.outputs.smoke != 'true'
         shell: bash
         run: |
           set -euo pipefail
           started_at=$SECONDS
           trap 'printf "iOS build: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
-          # Use the preinstalled iOS SDK from the runner's default Xcode.
-          unset DEVELOPER_DIR
           xcodebuild -version
           xcodebuild -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/TeBankBuild" CODE_SIGNING_ALLOWED=NO build
 
-      - name: Wait for simulator readiness
-        if: steps.scope.outputs.smoke == 'true'
+      - name: Select and prepare simulator
+        id: simulator
+        if: needs.scope.outputs.smoke == 'true'
         shell: bash
-        env:
-          SIMULATOR_ID: ${{ steps.simulator.outputs.device_id }}
         run: |
           set -euo pipefail
-          unset DEVELOPER_DIR
           started_at=$SECONDS
-          trap 'printf "Remaining simulator boot wait: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
-          xcrun simctl bootstatus "$SIMULATOR_ID" -b
+          trap 'printf "Simulator selection and boot: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
+          xcodebuild -version
+          sdk_version=$(xcrun --sdk iphonesimulator --show-sdk-version)
+          architecture=$(uname -m)
+          devices=$(xcrun simctl list devices available -j)
+          device_id=$(python3 -c 'import json, sys
+          runtime = "com.apple.CoreSimulator.SimRuntime.iOS-" + sys.argv[1].replace(".", "-")
+          devices = json.load(sys.stdin)["devices"].get(runtime, [])
+          device = next((item for item in devices if item["name"].startswith("iPhone")), None)
+          if device is None:
+              sys.exit(f"No preinstalled iPhone simulator for iOS {sys.argv[1]}")
+          print(device["udid"])' "$sdk_version" <<< "$devices")
+          xcrun simctl bootstatus "$device_id" -b
+          echo "device_id=$device_id" >> "$GITHUB_OUTPUT"
+          echo "architecture=$architecture" >> "$GITHUB_OUTPUT"
 
       - name: Test onboarding approval and dashboard on iOS
-        if: steps.scope.outputs.smoke == 'true'
+        if: needs.scope.outputs.smoke == 'true'
         shell: bash
         env:
           SIMULATOR_ID: ${{ steps.simulator.outputs.device_id }}
@@ -143,7 +149,6 @@ jobs:
           set -euo pipefail
           started_at=$SECONDS
           trap 'printf "Simulator build and tests: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
-          unset DEVELOPER_DIR
           xcodebuild -showBuildTimingSummary -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
             -resultBundlePath "$RUNNER_TEMP/dashboard.xcresult" \
             -destination "platform=iOS Simulator,id=$SIMULATOR_ID,arch=$SIMULATOR_ARCH" \
@@ -151,10 +156,33 @@ jobs:
             ARCHS="$SIMULATOR_ARCH" CODE_SIGNING_ALLOWED=NO test
 
       - name: Preserve failed dashboard UI test evidence
-        if: failure() && steps.scope.outputs.smoke == 'true'
+        if: failure() && needs.scope.outputs.smoke == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dashboard-ui-failure
           path: ${{ runner.temp }}/dashboard.xcresult
           retention-days: 1
           if-no-files-found: ignore
+
+  verification:
+    # Preserve the existing required check across all verification scopes.
+    name: SwiftPM tests (Xcode 16.2)
+    needs: [scope, package-tests, ios]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check verification results
+        shell: bash
+        env:
+          SCOPE: ${{ needs.scope.result }}
+          FULL: ${{ needs.scope.outputs.full }}
+          PACKAGE: ${{ needs.package-tests.result }}
+          IOS: ${{ needs.ios.result }}
+        run: |
+          set -eu
+          [[ "$SCOPE" == success ]]
+          case "$FULL" in
+            true)  [[ "$PACKAGE" == success && "$IOS" == success ]] ;;
+            false) [[ "$PACKAGE" == skipped && "$IOS" == skipped ]] ;;
+            *) exit 1 ;;
+          esac
