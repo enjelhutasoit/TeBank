@@ -9,6 +9,23 @@ final class LocalTransferTests: XCTestCase {
         try LocalTransfer(beneficiary: " Demo ", bank: "Bank demo", account: account, rupiah: amount)
     }
 
+    func testReviewedCheckpointBeforeJournalWriteRequiresConfirmation() async throws {
+        let directory = URL.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let reviewed = try request()
+        let checkpoint = LocalTransferCheckpointStore(directory: directory)
+        try checkpoint.save(reviewed)
+        let recovered = try XCTUnwrap(checkpoint.load())
+        let service = try DemoLocalTransferService(
+            request: recovered, storeURL: directory.appendingPathComponent("journal.sqlite"), loseResponse: false
+        )
+        let status = try await service.restoredStatus()
+        XCTAssertNil(status)
+        XCTAssertEqual(recovered, reviewed)
+        try checkpoint.clear()
+        XCTAssertNil(try checkpoint.load())
+    }
+
     func testValidationPreservesLeadingZerosAndConvertsRupiahExactly() throws {
         let value = try request()
         XCTAssertEqual(value.account, "0017")
@@ -61,7 +78,7 @@ final class LocalTransferTests: XCTestCase {
         }
 
         let reopened = try DemoLocalTransferService(request: reviewed, storeURL: journalURL, loseResponse: false)
-        let recovered = try await reopened.checkStatus()
+        let recovered = try await reopened.restoredStatus()
         XCTAssertEqual(recovered, .accepted)
     }
 
@@ -74,7 +91,7 @@ final class LocalTransferTests: XCTestCase {
         _ = try await journal.record(reviewed.intent, idempotencyKey: UUID())
 
         let reopened = try DemoLocalTransferService(request: reviewed, storeURL: journalURL, loseResponse: false)
-        let recovered = try await reopened.checkStatus()
+        let recovered = try await reopened.restoredStatus()
         XCTAssertEqual(recovered, .pending)
     }
 
