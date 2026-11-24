@@ -25,6 +25,7 @@ public protocol LocalTransferService: Sendable {
 /// One immutable, reviewed request per session. Both operations use the same SDK journal.
 public struct DemoLocalTransferService: LocalTransferService {
     private let request: LocalTransfer
+    private let journal: CoreDataTransferJournal
     private let coordinator: TransferCoordinator
     private let reconciliation: TransferReconciliationService
 
@@ -32,6 +33,7 @@ public struct DemoLocalTransferService: LocalTransferService {
         let bank = try DemoBankGateway(storeURL: storeURL.appendingPathExtension("bank.sqlite"),
                                        loseResponse: loseResponse)
         let journal = try CoreDataTransferJournal(storeURL: storeURL)
+        self.journal = journal
         self.request = request
         coordinator = TransferCoordinator(journal: journal, gateway: bank)
         reconciliation = TransferReconciliationService(
@@ -53,9 +55,15 @@ public struct DemoLocalTransferService: LocalTransferService {
     }
 
     public func checkStatus() async throws -> LocalTransferStatus {
+        // The SDK reconciles by ID and key. Check that the displayed amount belongs to that intent.
+        guard let entry = try await journal.entry(for: request.id) else {
+            throw TransferReconciliationService.Failure.intentNotFound
+        }
+        guard entry.intent == request.intent else { throw TransferOperationError.intentConflict }
+
         switch try await reconciliation.reconcile(intentID: request.id) {
-        case let .confirmed(state, _): LocalTransferStatus(state)
-        case .unresolved: .pending
+        case let .confirmed(state, _): return LocalTransferStatus(state)
+        case .unresolved: return .pending
         }
     }
 }

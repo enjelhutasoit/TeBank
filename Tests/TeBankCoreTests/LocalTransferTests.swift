@@ -1,4 +1,5 @@
 import Foundation
+import TransferCore
 import TransferPersistence
 import XCTest
 @testable import TeBankCore
@@ -109,6 +110,40 @@ final class LocalTransferTests: XCTestCase {
         let reopened = try DemoLocalTransferService(request: reviewed, storeURL: journalURL, loseResponse: false)
         let recovered = try await reopened.restoredStatus()
         XCTAssertEqual(recovered, .accepted)
+    }
+
+    func testRecoveryRejectsChangedCheckpointAmountForAcceptedIntent() async throws {
+        let directory = URL.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let checkpoint = LocalTransferCheckpointStore(directory: directory)
+        let original = try request()
+        try checkpoint.save(original)
+        let journalURL = directory.appendingPathComponent("journal.sqlite")
+        do {
+            let sender = try DemoLocalTransferService(request: original, storeURL: journalURL, loseResponse: true)
+            let status = try await sender.submit()
+            XCTAssertEqual(status, .pending)
+        }
+
+        let file = directory.appendingPathComponent("reviewed-transfer.json")
+        let data = try Data(contentsOf: file)
+        var fields = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        fields["rupiah"] = 500
+        try JSONSerialization.data(withJSONObject: fields).write(to: file)
+        let changed = try XCTUnwrap(checkpoint.load())
+        XCTAssertEqual(changed.id, original.id)
+        XCTAssertNotEqual(changed.rupiah, original.rupiah)
+        let reader = try DemoLocalTransferService(request: changed, storeURL: journalURL, loseResponse: false)
+        do {
+            _ = try await reader.restoredStatus()
+            XCTFail("Recovery must reject a checkpoint whose amount differs from the journal")
+        } catch let error as TransferOperationError {
+            XCTAssertEqual(error, .intentConflict)
+        }
+
+        let originalReader = try DemoLocalTransferService(request: original, storeURL: journalURL, loseResponse: false)
+        let status = try await originalReader.restoredStatus()
+        XCTAssertEqual(status, .accepted)
     }
 
     func testClientJournalAloneDoesNotConfirmBankAcceptance() async throws {
