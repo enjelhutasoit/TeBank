@@ -60,7 +60,7 @@ final class DashboardFlowTests: XCTestCase {
             field.typeText(value)
         }
         tap("Tinjau transfer", in: app)
-        XCTAssertTrue(app.staticTexts["0017"].exists)
+        XCTAssertTrue(app.staticTexts["Rekening, 0017"].waitForExistence(timeout: 10))
         tap("Konfirmasi transfer demo", in: app)
         XCTAssertTrue(app.staticTexts["Diterima untuk diproses"].waitForExistence(timeout: 15))
         app.navigationBars.buttons.element(boundBy: 0).tap()
