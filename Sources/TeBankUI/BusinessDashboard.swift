@@ -3,6 +3,7 @@ import TeBankCore
 import VaneKit
 
 struct BusinessDashboard: View {
+    let transfers: LocalTransferModel
     let ledger: DemoLedger
     let paymentLinks: any PaymentLinkDemoService
 
@@ -46,6 +47,9 @@ struct BusinessDashboard: View {
                         }
                     }
                 }
+
+                NavigationLink("Transfer lokal") { LocalTransferScreen(model: transfers) }
+                    .buttonStyle(.bordered)
 
                 Text("Aktivitas terbaru").font(.headline).accessibilityAddTraits(.isHeader)
                 ForEach(ledger.entries) { entry in
