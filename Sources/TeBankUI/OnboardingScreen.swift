@@ -21,7 +21,7 @@ final class OnboardingDemo {
     private(set) var changingScenario = false
 
     init(directory: URL) {
-        transfers = LocalTransferModel(directory: URL.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        transfers = LocalTransferModel(directory: directory.appendingPathComponent("transfers"))
         authority = FakeOnboardingAuthority(directory: directory.appendingPathComponent("authority"))
         model = OnboardingModel(
             store: FileCheckpointStore(url: directory.appendingPathComponent("checkpoint.json")),
