@@ -35,6 +35,11 @@ final class LocalTransferModel {
         }.value
     }
 
+    func archivedStatus(for request: LocalTransfer) async throws -> LocalTransferStatus {
+        let reader = try await openService(for: request, loseResponse: false)
+        return try await reader.checkStatus()
+    }
+
     func restore() async {
         guard case .restoring = step, !busy else { return }
         busy = true
@@ -153,18 +158,13 @@ struct LocalTransferScreen: View {
                 Toggle("Simulasikan respons hilang", isOn: $model.loseResponse)
                 Button("Tinjau transfer") { model.review() }
             case let .review(request):
-                summary(request)
+                TransferSummary(request: request)
                 Button("Konfirmasi transfer demo") { Task { await model.submit() } }
                 Button("Ubah rincian") { model.edit() }
             case let .status(request, status):
-                summary(request)
+                TransferSummary(request: request)
                 Section("Status transfer") {
-                    switch status {
-                    case .pending: Text("Hasil belum diketahui")
-                    case .accepted: Text("Diterima untuk diproses")
-                    case .settled: Text("Selesai")
-                    case .rejected: Text("Ditolak")
-                    }
+                    TransferStatusLabel(status: status)
                     Button("Periksa status transfer") { Task { await model.refresh() } }
                     if status != .pending {
                         Button("Transfer baru") { model.startNew() }
@@ -179,7 +179,25 @@ struct LocalTransferScreen: View {
         .task { await model.restore() }
     }
 
-    private func summary(_ request: LocalTransfer) -> some View {
+}
+
+struct TransferStatusLabel: View {
+    let status: LocalTransferStatus
+
+    var body: some View {
+        switch status {
+        case .pending: Text("Hasil belum diketahui")
+        case .accepted: Text("Diterima untuk diproses")
+        case .settled: Text("Selesai")
+        case .rejected: Text("Ditolak")
+        }
+    }
+}
+
+struct TransferSummary: View {
+    let request: LocalTransfer
+
+    var body: some View {
         Section("Ringkasan simulasi") {
             LabeledContent("Nama", value: request.beneficiary)
             LabeledContent("Bank", value: request.bank)
