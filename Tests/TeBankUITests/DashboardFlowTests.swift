@@ -90,6 +90,37 @@ final class DashboardFlowTests: XCTestCase {
     }
 
     @MainActor
+    func testPendingTransferRecoversAfterProcessRelaunch() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments.append("--dashboard-ui-test")
+        app.launchEnvironment["TEBANK_UI_TEST_STORE"] = UUID().uuidString
+        app.launch()
+        try openApprovedDashboard(in: app)
+        tap("Transfer lokal", in: app)
+        let loseResponse = app.switches["Simulasikan respons hilang"]
+        XCTAssertTrue(loseResponse.waitForExistence(timeout: 10))
+        loseResponse.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        XCTAssertEqual(loseResponse.value as? String, "1")
+        enterTransferDetails(in: app)
+        tap("Tinjau transfer", in: app)
+        tap("Konfirmasi transfer demo", in: app)
+        XCTAssertTrue(app.staticTexts["Hasil belum diketahui"].waitForExistence(timeout: 15))
+
+        app.terminate()
+        XCTAssertTrue(app.wait(for: .notRunning, timeout: 10))
+        app.launch()
+        tap("Pendaftaran bisnis", in: app)
+        tap("Buka dashboard", in: app)
+        tap("Transfer lokal", in: app)
+
+        XCTAssertTrue(app.staticTexts["Diterima untuk diproses"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["Rekening, 0017"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["Transfer baru"].exists)
+        XCTAssertFalse(app.buttons["Konfirmasi transfer demo"].exists)
+    }
+
+    @MainActor
     private func enterTransferDetails(in app: XCUIApplication) {
         for (label, value) in [("Nama penerima demo", "Rani"), ("Bank demo", "Demo"),
                                ("Nomor rekening demo", "0017"), ("Nominal rupiah", "12500")] {
