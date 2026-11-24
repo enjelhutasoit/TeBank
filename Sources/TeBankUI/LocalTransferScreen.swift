@@ -24,7 +24,7 @@ final class LocalTransferModel {
 
     init(directory: URL) { self.directory = directory }
 
-    private var checkpoint: LocalTransferCheckpointStore {
+    var checkpoint: LocalTransferCheckpointStore {
         LocalTransferCheckpointStore(directory: directory)
     }
 
