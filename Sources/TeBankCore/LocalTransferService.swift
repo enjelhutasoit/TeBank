@@ -29,11 +29,11 @@ public struct DemoLocalTransferService: LocalTransferService {
     private let reconciliation: TransferReconciliationService
 
     public init(request: LocalTransfer, storeURL: URL, loseResponse: Bool) throws {
-        let key = UUID()
-        let bank = SimulatedBank(faults: loseResponse ? [key: .timeoutAfterCommit] : [:])
+        let bank = try DemoBankGateway(storeURL: storeURL.appendingPathExtension("bank.sqlite"),
+                                       loseResponse: loseResponse)
         let journal = try CoreDataTransferJournal(storeURL: storeURL)
         self.request = request
-        coordinator = TransferCoordinator(journal: journal, gateway: bank, makeIdempotencyKey: { key })
+        coordinator = TransferCoordinator(journal: journal, gateway: bank)
         reconciliation = TransferReconciliationService(
             journal: journal, gateway: bank, policy: try ReconciliationPolicy(maximumAttempts: 1)
         )
@@ -48,5 +48,36 @@ public struct DemoLocalTransferService: LocalTransferService {
         case let .confirmed(state, _): LocalTransferStatus(state)
         case .unresolved: .pending
         }
+    }
+}
+
+private actor DemoBankGateway: TransferGateway, TransferStatusGateway {
+    // A row in this separate store means the simulated bank accepted the request.
+    private let accepted: CoreDataTransferJournal
+    private var loseResponse: Bool
+
+    init(storeURL: URL, loseResponse: Bool) throws {
+        accepted = try CoreDataTransferJournal(storeURL: storeURL)
+        self.loseResponse = loseResponse
+    }
+
+    func submit(_ transfer: JournaledTransfer) async throws -> TransferSubmissionResult {
+        let dropReply = loseResponse
+        loseResponse = false
+        let receipt = try await accepted.record(transfer.intent, idempotencyKey: transfer.idempotencyKey)
+        guard receipt == transfer else { throw SimulatedBankError.intentConflict }
+        if dropReply { throw SimulatedBankError.timedOut }
+        return .accepted
+    }
+
+    func status(for intentID: UUID, idempotencyKey: UUID) async throws -> TransferStatusResponse {
+        guard let receipt = try await accepted.entry(for: intentID),
+              receipt.idempotencyKey == idempotencyKey else {
+            return TransferStatusResponse(intentID: intentID, idempotencyKey: idempotencyKey, status: .notFound)
+        }
+        return TransferStatusResponse(
+            intentID: intentID, idempotencyKey: idempotencyKey, status: .accepted,
+            version: TransferStatusVersion(rawValue: 1)
+        )
     }
 }
