@@ -54,6 +54,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "FD6DBD6A8BF9748AC9EF8D14";
 		};
+		"49A500000000000000000001" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "folder.assetcatalog";
+			"path" = "App/Assets.xcassets";
+			"sourceTree" = "<group>";
+		};
+		"49A500000000000000000002" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "49A500000000000000000001";
+		};
 		"A8792157CB4F27FB949C035F" = {
 			"isa" = "PBXFileReference";
 			"explicitFileType" = "wrapper.application";
@@ -74,6 +84,7 @@
 			"children" = (
 				"50A3B0F83151EC41B0DA6541",
 				"FD6DBD6A8BF9748AC9EF8D14",
+				"49A500000000000000000001",
 				"26DA00000000000000000002",
 				"0A3E27B8CA818264D75C8D81",
 			);
@@ -115,6 +126,7 @@
 			"isa" = "PBXResourcesBuildPhase";
 			"buildActionMask" = 2147483647;
 			"files" = (
+				"49A500000000000000000002",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
