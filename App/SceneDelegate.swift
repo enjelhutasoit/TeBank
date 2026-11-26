@@ -75,20 +75,44 @@ private struct LockedSession: View {
         if unlocked {
             TeBankShell()
         } else {
-            VStack(spacing: 16) {
-                Text("Sesi terkunci").font(.title)
-                Button("Buka TeBank") {
-                    guard !authenticating else { return }
-                    authenticating = true
-                    Task { await authenticate() }
+            ScrollView {
+                VStack(spacing: 24) {
+                    Image("TeBankWordmark")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: 280)
+                        .accessibilityHidden(true)
+
+                    Button {
+                        guard !authenticating else { return }
+                        authenticating = true
+                        Task { await authenticate() }
+                    } label: {
+                        VStack(spacing: 8) {
+                            Image("BiometricUnlock")
+                                .renderingMode(.original)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 40, height: 40)
+                                .accessibilityHidden(true)
+                            Text("Buka TeBank")
+                        }
+                        .frame(minWidth: 44, minHeight: 44)
+                        .padding(8)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(authenticating)
+
+                    if showFailure {
+                        Text("Sesi masih terkunci. Coba lagi dengan autentikasi perangkat.")
+                            .multilineTextAlignment(.center)
+                    }
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(authenticating)
-                if showFailure {
-                    Text("Sesi masih terkunci. Coba lagi dengan autentikasi perangkat.")
-                }
+                .frame(maxWidth: .infinity)
+                .padding(24)
+                .padding(.top, 32)
             }
-            .padding()
         }
     }
 

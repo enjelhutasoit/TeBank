@@ -1,8 +1,14 @@
-# TeBank
-
-An independent iOS business banking prototype demonstrating recoverable financial workflows, reusable Swift SDK integration and accessible SwiftUI interfaces with synthetic data.
-
-**Swift 6 · SwiftUI + UIKit · iOS 17+ · Xcode 16.2 · Swift Package Manager**
+<div align="center">
+  <img src="App/Assets.xcassets/TeBankWordmark.imageset/wordmark-dark.png" alt="TeBank wordmark" width="320">
+  <h1>TeBank</h1>
+  <p>
+    <a href="https://github.com/enjelhutasoit/TeBank/actions/workflows/ci.yml"><img src="https://github.com/enjelhutasoit/TeBank/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green" alt="MIT license"></a>
+    <img src="https://img.shields.io/badge/Swift-6-orange" alt="Swift 6">
+    <img src="https://img.shields.io/badge/iOS-17%2B-blue" alt="iOS 17 and later">
+  </p>
+  <p>An independent iOS business banking prototype demonstrating recoverable financial workflows, reusable Swift SDK integration and accessible SwiftUI interfaces with synthetic data.</p>
+</div>
 
 ## What you can explore
 
