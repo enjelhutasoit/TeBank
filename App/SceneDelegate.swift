@@ -75,45 +75,66 @@ private struct LockedSession: View {
         if unlocked {
             TeBankShell()
         } else {
-            ScrollView {
-                VStack(spacing: 24) {
-                    Image("TeBankWordmark")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: 280)
-                        .accessibilityHidden(true)
-
-                    Button {
-                        guard !authenticating else { return }
-                        authenticating = true
-                        Task { await authenticate() }
-                    } label: {
-                        VStack(spacing: 8) {
-                            Image("BiometricUnlock")
-                                .renderingMode(.original)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 40, height: 40)
-                                .accessibilityHidden(true)
-                            Text("Buka TeBank")
-                        }
-                        .frame(minWidth: 44, minHeight: 44)
-                        .padding(8)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(authenticating)
-
-                    if showFailure {
-                        Text("Sesi masih terkunci. Coba lagi dengan autentikasi perangkat.")
-                            .multilineTextAlignment(.center)
-                    }
+            ViewThatFits(in: .vertical) {
+                VStack(spacing: 16) {
+                    // Match the footer's height so the wordmark stays at the center.
+                    loginButton.hidden().accessibilityHidden(true)
+                    Spacer(minLength: 0)
+                    wordmark
+                    Spacer(minLength: 0)
+                    loginButton
                 }
-                .frame(maxWidth: .infinity)
-                .padding(24)
-                .padding(.top, 32)
+                .padding(.vertical, 24)
+
+                ScrollView {
+                    VStack(spacing: 24) {
+                        wordmark
+                        loginButton
+                    }
+                    .padding(.vertical, 24)
+                }
+            }
+            .padding(.horizontal, 21)
+            .alert("Sesi masih terkunci", isPresented: $showFailure) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Coba lagi dengan autentikasi perangkat.")
             }
         }
+    }
+
+    private var wordmark: some View {
+        Image("TeBankWordmark")
+            .resizable()
+            .scaledToFit()
+            .frame(maxWidth: 180)
+            .accessibilityHidden(true)
+    }
+
+    private var loginButton: some View {
+        Button {
+            guard !authenticating else { return }
+            authenticating = true
+            Task { await authenticate() }
+        } label: {
+            HStack(spacing: 12) {
+                Image("BiometricUnlock")
+                    .renderingMode(.original)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
+                    .accessibilityHidden(true)
+                Text("Login")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.white)
+            }
+            .padding(.vertical, 16)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .background(.black, in: Capsule())
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .disabled(authenticating)
     }
 
     @MainActor
