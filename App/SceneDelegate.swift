@@ -19,7 +19,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         presentLockedSession()
         shield.backgroundColor = .black
         shield.isAccessibilityElement = true
-        shield.accessibilityLabel = "TeBank"
+        shield.accessibilityLabel = "tebank"
         shield.accessibilityViewIsModal = true
         shield.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         coverWindow()
@@ -148,7 +148,7 @@ private struct LockedSession: View {
             await controller.lock()
         }
         do {
-            try await controller.unlock(reason: "Buka sesi demo TeBank")
+            try await controller.unlock(reason: "Buka sesi demo tebank")
             unlocked = await controller.state == .unlocked
         } catch {
             showFailure = true

@@ -3,7 +3,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "TeBank",
+    name: "tebank",
     platforms: [
         .iOS(.v17),
         .macOS(.v14)

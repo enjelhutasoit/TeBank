@@ -61,7 +61,7 @@ struct OnboardingScreen: View {
 
     var body: some View {
         Form {
-            Section("Simulasi TeBank") {
+            Section("Simulasi tebank") {
                 Text("Gunakan sampel sintetis. Tidak perlu mengunggah foto atau identitas.")
             }
             Section("Status pengajuan") {

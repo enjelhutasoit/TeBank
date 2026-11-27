@@ -1,6 +1,6 @@
 # Onboarding persistence and session boundaries
 
-TeBank uses two independent local data stores to model a client and a remote authority. The integration layer supplies separate app-private Application Support locations. Both stores contain synthetic state.
+tebank uses two independent local data stores to model a client and a remote authority. The integration layer supplies separate app-private Application Support locations. Both stores contain synthetic state.
 
 | Owner | Durable state | Recovery rule |
 | --- | --- | --- |
@@ -10,7 +10,7 @@ TeBank uses two independent local data stores to model a client and a remote aut
 
 Each store assumes one actor instance per writable location in one process. Atomic replacement keeps readers from seeing a partial record. It does not provide a cross-process transaction spanning both stores. A missing client response can therefore coexist with a durable authority decision. When the app resumes an interrupted submission, it uses the saved request ID to look up the authority's decision.
 
-The session gate uses BiometricSession with device passcode fallback. The [Xcode workspace lockfile](../TeBank.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved) records the SDK version and revision. The SDK owns the authentication prompt. The app owns scene replacement and the opaque inactive-state cover. Switching to the background discards in-memory navigation. A temporary inactive transition during a system prompt only covers the window. Unlocking has no effect on the simulated authority.
+The session gate uses BiometricSession with device passcode fallback. The [Xcode workspace lockfile](../tebank.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved) records the SDK version and revision. The SDK owns the authentication prompt. The app owns scene replacement and the opaque inactive-state cover. Switching to the background discards in-memory navigation. A temporary inactive transition during a system prompt only covers the window. Unlocking has no effect on the simulated authority.
 
 ## Manual verification on iOS
 

@@ -7,7 +7,7 @@ if [[ "$version" != $'Xcode 16.2\nBuild version 16C5032a' ]]; then
   exit 1
 fi
 xcrun swift test --disable-automatic-resolution -Xswiftc -warnings-as-errors
-destinations=$(xcodebuild -project TeBank.xcodeproj -scheme TeBank -showdestinations)
+destinations=$(xcodebuild -project tebank.xcodeproj -scheme tebank -showdestinations)
 device=$(python3 -c 'import re, sys
 for line in sys.stdin:
     if "Ineligible destinations" in line:
@@ -19,6 +19,6 @@ for line in sys.stdin:
             sys.exit(0)
 sys.exit("No installed iPhone simulator is eligible in Xcode 16.2.")' <<< "$destinations")
 arch=$(uname -m)
-xcodebuild -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
+xcodebuild -project tebank.xcodeproj -scheme tebank -configuration Debug \
   -destination "platform=iOS Simulator,id=$device" \
   -parallel-testing-enabled NO ARCHS="$arch" CODE_SIGNING_ALLOWED=NO test

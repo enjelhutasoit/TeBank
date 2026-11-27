@@ -112,7 +112,7 @@ jobs:
           started_at=$SECONDS
           trap 'printf "iOS build: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
           xcodebuild -version
-          xcodebuild -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
+          xcodebuild -project tebank.xcodeproj -scheme tebank -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/TeBankBuild" CODE_SIGNING_ALLOWED=NO build
 
@@ -149,7 +149,7 @@ jobs:
           set -euo pipefail
           started_at=$SECONDS
           trap 'printf "Simulator build and tests: %s s\n" "$((SECONDS-started_at))" >> "$GITHUB_STEP_SUMMARY"' EXIT
-          xcodebuild -showBuildTimingSummary -project TeBank.xcodeproj -scheme TeBank -configuration Debug \
+          xcodebuild -showBuildTimingSummary -project tebank.xcodeproj -scheme tebank -configuration Debug \
             -resultBundlePath "$RUNNER_TEMP/dashboard.xcresult" \
             -destination "platform=iOS Simulator,id=$SIMULATOR_ID,arch=$SIMULATOR_ARCH" \
             -derivedDataPath "$RUNNER_TEMP/TeBankUITests" -parallel-testing-enabled NO \
