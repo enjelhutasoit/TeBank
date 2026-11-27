@@ -21,7 +21,7 @@ final class DashboardFlowTests: XCTestCase {
         app.launchArguments.append("--dashboard-ui-test")
         app.launch()
 
-        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 15), "TeBank did not reach the foreground")
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 15), "tebank did not reach the foreground")
         try openApprovedDashboard(in: app)
         let balance = app.descendants(matching: .any)["dashboard.balance"]
         XCTAssertTrue(balance.waitForExistence(timeout: 10))

@@ -1,10 +1,10 @@
-# Guided TeBank demo
+# Guided tebank demo
 
-Use an installed iPhone simulator with Xcode 16.2 and the shared TeBank scheme. Use only synthetic recipient and business details. Start with a fresh installation if an earlier demo has already completed onboarding.
+Use an installed iPhone simulator with Xcode 16.2 and the shared tebank scheme. Use only synthetic recipient and business details. Start with a fresh installation if an earlier demo has already completed onboarding.
 
 ## 1. Session and onboarding
 
-1. Select **Buka TeBank** and authenticate.
+1. Select **Login** and authenticate.
 2. Open **Pendaftaran bisnis**, enable **Setuju mengikuti simulasi**, and tap **Pilih sampel KTP dan swafoto**.
 3. Tap **Kirim pengajuan** and wait for **Menunggu tinjauan**.
 4. Open **Lab simulasi**, choose **Setujui pengajuan demo**, return to onboarding and tap **Buka dashboard**.

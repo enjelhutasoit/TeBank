@@ -14,16 +14,16 @@ public struct TeBankShell: View {
                     OnboardingScreen(demo: .shared)
                 }
                 .listRowBackground(theme.color(.surface, for: scheme))
-                NavigationLink("Tentang TeBank") {
+                NavigationLink("Tentang tebank") {
                     Text("Prototipe independen dengan data simulasi.")
                         .padding()
-                        .navigationTitle("Tentang TeBank")
+                        .navigationTitle("Tentang tebank")
                 }
                 .listRowBackground(theme.color(.surface, for: scheme))
             }
             .scrollContentBackground(.hidden)
             .background(theme.color(.background, for: scheme))
-            .navigationTitle("TeBank")
+            .navigationTitle("tebank")
         }
         .foregroundStyle(theme.color(.textPrimary, for: scheme))
         .tint(theme.color(.accent, for: scheme))

@@ -2,8 +2,7 @@
   <img src="App/Assets.xcassets/TeBankWordmark.imageset/wordmark-dark.png" alt="tebank wordmark" width="320">
   <h1>tebank</h1>
   <p>
-    <a href="https://github.com/enjelhutasoit/TeBank/actions/workflows/ci.yml"><img src="https://github.com/enjelhutasoit/TeBank/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green" alt="MIT license"></a>
+    <a href="https://github.com/enjelhutasoit/tebank/actions/workflows/ci.yml"><img src="https://github.com/enjelhutasoit/tebank/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
     <img src="https://img.shields.io/badge/Swift-6-orange" alt="Swift 6">
     <img src="https://img.shields.io/badge/iOS-17%2B-blue" alt="iOS 17 and later">
   </p>
@@ -41,14 +40,14 @@ flowchart TD
 - [TeBankUI](Sources/TeBankUI) owns observable screen models, navigation, and VaneKit theme integration.
 - [App](App) hosts SwiftUI in UIKit and owns window lifecycle, authentication and privacy shielding.
 
-The app integrates [BiometricSession](https://github.com/enjelhutasoit/biometric-session-sdk), [VaneKit](https://github.com/enjelhutasoit/VaneKit) and [SwiftTransferKit](https://github.com/enjelhutasoit/SwiftTransferKit). The [package manifest](Package.swift) and [workspace lockfile](TeBank.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved) record the dependency configuration.
+The app integrates [BiometricSession](https://github.com/enjelhutasoit/biometric-session-sdk), [VaneKit](https://github.com/enjelhutasoit/VaneKit) and [SwiftTransferKit](https://github.com/enjelhutasoit/SwiftTransferKit). The [package manifest](Package.swift) and [workspace lockfile](tebank.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved) record the dependency configuration.
 
 Read the [transfer recovery ADR](docs/adr/001-transfer-recovery.md) and [onboarding persistence design](docs/onboarding-persistence.md) for ownership, failure handling and trade-offs.
 
 ## Run locally
 
 1. Install Xcode 16.2 (build `16C5032a`) and an eligible iOS simulator.
-2. Open `TeBank.xcodeproj`, select the shared `TeBank` scheme and an installed iPhone simulator.
+2. Open `tebank.xcodeproj`, select the shared `tebank` scheme and an installed iPhone simulator.
 3. Run the app, select **Login**, and authenticate using the simulator's enrolled biometric or device passcode.
 
 The package uses Swift 6.0.3 with Xcode 16.2 and targets iOS 17+ and macOS 14+.
@@ -81,7 +80,3 @@ Hosted [CI](.github/workflows/ci.yml) determines verification scope on Linux and
 ## Limitations
 
 Payment links live in memory for the current app process and use synthetic URLs under `pay.tebank.invalid`. Local transfer checkpoints and journals persist across relaunch. Simulated bank acceptance represents acceptance for processing, and the dashboard balance stays synthetic. Recipient routing, real settlement, fees and bank-specific limits are outside the demo. Manual physical-device accessibility and performance profiling remain pending.
-
-## License
-
-[MIT](LICENSE)
