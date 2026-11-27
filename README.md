@@ -1,6 +1,5 @@
 <div align="center">
   <img src="App/Assets.xcassets/TeBankWordmark.imageset/wordmark-dark.png" alt="tebank wordmark" width="320">
-  <h1>tebank</h1>
   <p>
     <a href="https://github.com/enjelhutasoit/tebank/actions/workflows/ci.yml"><img src="https://github.com/enjelhutasoit/tebank/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
     <img src="https://img.shields.io/badge/Swift-6-orange" alt="Swift 6">
