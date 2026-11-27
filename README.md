@@ -1,6 +1,6 @@
 <div align="center">
-  <img src="App/Assets.xcassets/TeBankWordmark.imageset/wordmark-dark.png" alt="TeBank wordmark" width="320">
-  <h1>TeBank</h1>
+  <img src="App/Assets.xcassets/TeBankWordmark.imageset/wordmark-dark.png" alt="tebank wordmark" width="320">
+  <h1>tebank</h1>
   <p>
     <a href="https://github.com/enjelhutasoit/TeBank/actions/workflows/ci.yml"><img src="https://github.com/enjelhutasoit/TeBank/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green" alt="MIT license"></a>
@@ -21,7 +21,7 @@
 | Local transfers | Review, validation, durable submission identity, lost-response reconciliation and relaunch recovery |
 | Transfer history | Archived reviewed details and read-only status lookup using the original intent |
 
-TeBank is an unofficial demo. All balances, identities, transactions and bank responses are synthetic. It does not open accounts, collect identity photos or move money.
+tebank is an unofficial demo. All balances, identities, transactions and bank responses are synthetic. It does not open accounts, collect identity photos or move money.
 
 ## Architecture
 
@@ -49,7 +49,7 @@ Read the [transfer recovery ADR](docs/adr/001-transfer-recovery.md) and [onboard
 
 1. Install Xcode 16.2 (build `16C5032a`) and an eligible iOS simulator.
 2. Open `TeBank.xcodeproj`, select the shared `TeBank` scheme and an installed iPhone simulator.
-3. Run the app, select **Buka TeBank**, and authenticate using the simulator's enrolled biometric or device passcode.
+3. Run the app, select **Login**, and authenticate using the simulator's enrolled biometric or device passcode.
 
 The package uses Swift 6.0.3 with Xcode 16.2 and targets iOS 17+ and macOS 14+.
 
