@@ -64,6 +64,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "49A500000000000000000001";
 		};
+		"49A500000000000000000003" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "file.storyboard";
+			"path" = "App/LaunchScreen.storyboard";
+			"sourceTree" = "<group>";
+		};
+		"49A500000000000000000004" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "49A500000000000000000003";
+		};
 		"A8792157CB4F27FB949C035F" = {
 			"isa" = "PBXFileReference";
 			"explicitFileType" = "wrapper.application";
@@ -85,6 +95,7 @@
 				"50A3B0F83151EC41B0DA6541",
 				"FD6DBD6A8BF9748AC9EF8D14",
 				"49A500000000000000000001",
+				"49A500000000000000000003",
 				"26DA00000000000000000002",
 				"0A3E27B8CA818264D75C8D81",
 			);
@@ -127,6 +138,7 @@
 			"buildActionMask" = 2147483647;
 			"files" = (
 				"49A500000000000000000002",
+				"49A500000000000000000004",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
@@ -153,7 +165,8 @@
 				"GENERATE_INFOPLIST_FILE" = "YES";
 				"INFOPLIST_KEY_NSFaceIDUsageDescription" = "Buka sesi demo TeBank dengan Face ID.";
 				"INFOPLIST_KEY_CFBundleDisplayName" = "TeBank Demo";
-				"INFOPLIST_KEY_UILaunchScreen_Generation" = "YES";
+				"ASSETCATALOG_COMPILER_APPICON_NAME" = "AppIcon";
+				"INFOPLIST_KEY_UILaunchStoryboardName" = "LaunchScreen";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation" = "YES";
 				"INFOPLIST_KEY_UISupportedInterfaceOrientations" = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				"TARGETED_DEVICE_FAMILY" = "1,2";
@@ -187,7 +200,8 @@
 				"GENERATE_INFOPLIST_FILE" = "YES";
 				"INFOPLIST_KEY_NSFaceIDUsageDescription" = "Buka sesi demo TeBank dengan Face ID.";
 				"INFOPLIST_KEY_CFBundleDisplayName" = "TeBank Demo";
-				"INFOPLIST_KEY_UILaunchScreen_Generation" = "YES";
+				"ASSETCATALOG_COMPILER_APPICON_NAME" = "AppIcon";
+				"INFOPLIST_KEY_UILaunchStoryboardName" = "LaunchScreen";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation" = "YES";
 				"INFOPLIST_KEY_UISupportedInterfaceOrientations" = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				"TARGETED_DEVICE_FAMILY" = "1,2";
